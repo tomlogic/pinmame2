@@ -745,6 +745,8 @@ NASM_FMT  = -f elf
 # ASM_STRIP = true  # no strip command
 # NASM_FMT  = -f aoutb
 
+# Enable support for P-ROC
+CFLAGS += -DPROC_SUPPORT
 
 ###########################################################################
 # All done.  Type make -f makefile.unix and enjoy xmame/xmess.  ;)
