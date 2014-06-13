@@ -578,7 +578,7 @@ DE_ROMEND
 CORE_CLONEDEF(stwr,e12,103,"Star Wars (1.02, England)",1992,"Data East",de_mDEDMD32S2A,0)
 
 /*  CPU 1.04 (12/24/12) 20th Anniversary Edition */
-DE_ROMSTARTx0(stwr_104,"STARCPUA.104",CRC(12b87cfa) SHA1(12e0ab52f6784beefce8291d29b8aff01b2f2818))
+DE_ROMSTARTx0(stwr_104,"starcpua.104",CRC(12b87cfa) SHA1(12e0ab52f6784beefce8291d29b8aff01b2f2818))
 DE_DMD32ROM8x(        "sw4mrom.a15",CRC(00c87952) SHA1(cd2f491f03fcb3e3ceff7ee7f678aa1957a5d14b))
 DE2S_SOUNDROM042(     "s-wars.u7"  ,CRC(cefa19d5) SHA1(7ddf9cc85ab601514305bc46083a07a3d087b286),
                       "s-wars.u17" ,CRC(7950a147) SHA1(f5bcd5cf6b35f9e4f14d62b084495c3a743d92a1),
