@@ -129,10 +129,10 @@ void ConfigureWPCFlipperSwitchRule(int swNum, int mainCoilNum, int holdCoilNum, 
 	PRDriverStatePulse(&fldrivers[1], 0);	// Turn on indefintely (set pulse for 0ms)
 	sw.notifyHost = false;
 	sw.reloadActive = false;
-	PRSwitchUpdateRule(proc, swNum, kPREventTypeSwitchClosedNondebounced, &sw, fldrivers, numDriverRules);
+	PRSwitchUpdateRule(proc, swNum, kPREventTypeSwitchClosedNondebounced, &sw, fldrivers, numDriverRules, true);
 	sw.notifyHost = true;
 	sw.reloadActive = false;
-	PRSwitchUpdateRule(proc, swNum, kPREventTypeSwitchClosedDebounced, &sw, NULL, 0);
+	PRSwitchUpdateRule(proc, swNum, kPREventTypeSwitchClosedDebounced, &sw, NULL, 0, true);
 
 	// Flipper off rules
 	PRDriverGetState(proc, mainCoilNum, &fldrivers[0]);
@@ -141,10 +141,10 @@ void ConfigureWPCFlipperSwitchRule(int swNum, int mainCoilNum, int holdCoilNum, 
 	PRDriverStateDisable(&fldrivers[1]);	// Disable hold coil
 	sw.notifyHost = false;
 	sw.reloadActive = false;
-	PRSwitchUpdateRule(proc, swNum, kPREventTypeSwitchOpenNondebounced, &sw, fldrivers, numDriverRules);
+	PRSwitchUpdateRule(proc, swNum, kPREventTypeSwitchOpenNondebounced, &sw, fldrivers, numDriverRules, true);
 	sw.notifyHost = true;
 	sw.reloadActive = false;
-	PRSwitchUpdateRule(proc, swNum, kPREventTypeSwitchOpenDebounced, &sw, NULL, 0);
+	PRSwitchUpdateRule(proc, swNum, kPREventTypeSwitchOpenDebounced, &sw, NULL, 0, true);
 }
 
 void ConfigureSternFlipperSwitchRule(int swNum, int mainCoilNum, int pulseTime, int patterOnTime, int patterOffTime)
@@ -155,23 +155,23 @@ void ConfigureSternFlipperSwitchRule(int swNum, int mainCoilNum, int pulseTime, 
 
 	// Flipper on rules
 	PRDriverGetState(proc, mainCoilNum, &fldrivers[0]);
-	PRDriverStatePatter(&fldrivers[0], patterOnTime, patterOffTime, pulseTime);	// Pulse coil for 34ms.
+	PRDriverStatePatter(&fldrivers[0], patterOnTime, patterOffTime, pulseTime, true);	// Pulse coil for 34ms.
 	sw.notifyHost = false;
 	sw.reloadActive = false;
-	PRSwitchUpdateRule(proc, swNum, kPREventTypeSwitchClosedNondebounced, &sw, fldrivers, numDriverRules);
+	PRSwitchUpdateRule(proc, swNum, kPREventTypeSwitchClosedNondebounced, &sw, fldrivers, numDriverRules, true);
 	sw.notifyHost = true;
 	sw.reloadActive = false;
-	PRSwitchUpdateRule(proc, swNum, kPREventTypeSwitchClosedDebounced, &sw, NULL, 0);
+	PRSwitchUpdateRule(proc, swNum, kPREventTypeSwitchClosedDebounced, &sw, NULL, 0, true);
 
 	// Flipper off rules
 	PRDriverGetState(proc, mainCoilNum, &fldrivers[0]);
 	PRDriverStateDisable(&fldrivers[0]);	// Disable main coil
 	sw.notifyHost = false;
 	sw.reloadActive = false;
-	PRSwitchUpdateRule(proc, swNum, kPREventTypeSwitchOpenNondebounced, &sw, fldrivers, numDriverRules);
+	PRSwitchUpdateRule(proc, swNum, kPREventTypeSwitchOpenNondebounced, &sw, fldrivers, numDriverRules, true);
 	sw.notifyHost = true;
 	sw.reloadActive = false;
-	PRSwitchUpdateRule(proc, swNum, kPREventTypeSwitchOpenDebounced, &sw, NULL, 0);
+	PRSwitchUpdateRule(proc, swNum, kPREventTypeSwitchOpenDebounced, &sw, NULL, 0, true);
 }
 
 void ConfigureBumperRule(int swNum, int coilNum, int pulseTime)
@@ -183,10 +183,10 @@ void ConfigureBumperRule(int swNum, int coilNum, int pulseTime)
 	PRDriverStatePulse(&fldrivers[0], pulseTime);	// Pulse coil for 34ms.
 	sw.reloadActive = true;
 	sw.notifyHost = false;
-	PRSwitchUpdateRule(proc, swNum, kPREventTypeSwitchClosedNondebounced, &sw, fldrivers, numDriverRules);
+	PRSwitchUpdateRule(proc, swNum, kPREventTypeSwitchClosedNondebounced, &sw, fldrivers, numDriverRules, true);
 	sw.notifyHost = true;
 	sw.reloadActive = false;
-	PRSwitchUpdateRule(proc, swNum, kPREventTypeSwitchClosedDebounced, &sw, NULL, 0);
+	PRSwitchUpdateRule(proc, swNum, kPREventTypeSwitchClosedDebounced, &sw, NULL, 0, true);
 }
 
 // In addition to the automatic rules for bumpers (above), we need a slightly different
@@ -201,10 +201,10 @@ void ConfigureKickerRule(int lampNum, int swNum, int coilNum, int pulseTime)
 	PRDriverStatePulse(&fldrivers[0], pulseTime);	
 	sw.reloadActive = false;
 	sw.notifyHost = true;
-	PRSwitchUpdateRule(proc, swNum, kPREventTypeSwitchClosedNondebounced, &sw, fldrivers, numDriverRules);
+	PRSwitchUpdateRule(proc, swNum, kPREventTypeSwitchClosedNondebounced, &sw, fldrivers, numDriverRules, true);
 	sw.notifyHost = true;
 	sw.reloadActive = false;
-	PRSwitchUpdateRule(proc, swNum, kPREventTypeSwitchClosedDebounced, &sw, fldrivers, numDriverRules);
+	PRSwitchUpdateRule(proc, swNum, kPREventTypeSwitchClosedDebounced, &sw, fldrivers, numDriverRules, true);
         
 }
 
@@ -215,10 +215,10 @@ void ClearKickerRule(int lampNum, int swNum)
         PRSwitchRule sw;
         sw.notifyHost = true;
         sw.reloadActive = false;
-        PRSwitchUpdateRule(proc,swNum,kPREventTypeSwitchClosedNondebounced, &sw, NULL, 0);
+        PRSwitchUpdateRule(proc,swNum,kPREventTypeSwitchClosedNondebounced, &sw, NULL, 0, true);
         sw.notifyHost = true;
         sw.reloadActive = false;
-        PRSwitchUpdateRule(proc,swNum,kPREventTypeSwitchClosedDebounced, &sw, NULL, 0);
+        PRSwitchUpdateRule(proc,swNum,kPREventTypeSwitchClosedDebounced, &sw, NULL, 0, true);
 }
 
 // This routine is called by the lamp matrix handler (in wpc.c and s11.c) for each
@@ -451,8 +451,8 @@ void procConfigureDefaultSwitchRules(void) {
 		} else {
 			swRule.notifyHost = 1;
 		}
-		PRSwitchUpdateRule(proc, ii, kPREventTypeSwitchClosedNondebounced, &swRule, NULL, 0);
-		PRSwitchUpdateRule(proc, ii, kPREventTypeSwitchOpenNondebounced, &swRule, NULL, 0);
+		PRSwitchUpdateRule(proc, ii, kPREventTypeSwitchClosedNondebounced, &swRule, NULL, 0, true);
+		PRSwitchUpdateRule(proc, ii, kPREventTypeSwitchOpenNondebounced, &swRule, NULL, 0, true);
 	}
 }
 
@@ -606,7 +606,7 @@ void CoilDriver::Drive(int state) {
 				PRDriverStatePulse(&coilState, pulseTime);
 			}
 			else {
-				PRDriverStatePatter(&coilState, patterOnTime, patterOffTime, pulseTime);
+				PRDriverStatePatter(&coilState, patterOnTime, patterOffTime, pulseTime, true);
 			}
 		}
 	} else {
@@ -625,9 +625,9 @@ void CoilDriver::Patter(int msOn, int msOff) {
 	PRDriverState coilState;
 	PRDriverGetState(proc, num, &coilState);
 	if (useDefaultPatterTimes) {
-		PRDriverStatePatter(&coilState, msOn, msOff, 0);
+		PRDriverStatePatter(&coilState, msOn, msOff, 0, true);
 	} else {
-		PRDriverStatePatter(&coilState, patterOnTime, patterOffTime, 0);
+		PRDriverStatePatter(&coilState, patterOnTime, patterOffTime, 0, true);
 	}
 	PRDriverUpdateState(proc, &coilState);
 	patterActive = 1;
