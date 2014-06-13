@@ -243,3 +243,20 @@ int osd_trying_to_quit()
 	return 0;
 }
 
+#if defined(PINMAME) && defined(PROC_SUPPORT)
+/* Stub to supply osd_get_proc_list() for src/input.c */
+#include "input.h"
+
+const struct PROCInfo procInputList[] = {
+        { "Left Flipper",       0, PROC_FLIPPER_L },
+        { "Right Flipper",      1, PROC_FLIPPER_R },
+        { "Start Button",       2, PROC_START },
+        { "Quit",               3, PROC_ESC_SEQ },
+        { NULL,                 0, 0 },
+};
+
+const struct PROCInfo *osd_get_proc_list(void)
+{
+        return procInputList;
+}
+#endif
