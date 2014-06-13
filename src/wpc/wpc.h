@@ -150,6 +150,11 @@ extern const core_tLCDLayout wpc_dispDMD[];
 #define WPC_PRINTBUSY     (0x3fc0 - WPC_BASE) /* xxxxx  R: Printer ready ??? */
 #define WPC_PRINTDATA     (0x3fc1 - WPC_BASE) /* xxxxx  W: send to printer */
 #define WPC_PRINTDATAX    (0x3fc2 - WPC_BASE) /* xxxxx  W: 0: Printer data available */
+#define WPC_SERIAL_DATA   (0x3fc3 - WPC_BASE)
+#define WPC_SERIAL_CTRL   (0x3fc4 - WPC_BASE)
+#define WPC_SERIAL_BAUD   (0x3fc5 - WPC_BASE)
+/* Ticket dispenser board */
+#define WPC_TICKET_DISP   (0x3fc6 - WPC_BASE)
 /* Fliptronics 2 Board */
 #define WPC_FLIPPERS      (0x3fd4 - WPC_BASE) /*   xxx  R: switches W: Solenoids */
 /* Sound board */
@@ -203,6 +208,11 @@ extern UINT8 *wpc_data;
 /*---------------------
 /  Exported functions
 /----------------------*/
+
+/*--- memory handlers for the Orkin debugger interface --*/
+extern READ_HANDLER(orkin_r);
+extern WRITE_HANDLER(orkin_w);
+
 /*-- use this if a fallback is required in a custom memory handler --*/
 extern READ_HANDLER(wpc_r);
 extern WRITE_HANDLER(wpc_w);

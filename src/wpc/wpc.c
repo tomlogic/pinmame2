@@ -133,7 +133,9 @@ static MEMORY_READ_START(wpc_readmem)
   { 0x3600, 0x37ff, MRA_BANK7 },  /* DMD */
   { 0x3800, 0x39ff, MRA_BANK2 },  /* DMD */
   { 0x3A00, 0x3bff, MRA_BANK3 },  /* DMD */
-  { 0x3c00, 0x3faf, MRA_RAM },
+  { 0x3c00, 0x3d5f, MRA_RAM },
+  { 0x3d60, 0x3d61, orkin_r },
+  { 0x3d62, 0x3faf, MRA_RAM },
   { 0x3fb0, 0x3fff, wpc_r },
   { 0x4000, 0x7fff, MRA_BANK1 },
   { 0x8000, 0xffff, MRA_ROM },
@@ -147,7 +149,9 @@ static MEMORY_WRITE_START(wpc_writemem)
   { 0x3600, 0x37ff, MWA_BANK7 },  /* DMD */
   { 0x3800, 0x39ff, MWA_BANK2 },  /* DMD */
   { 0x3A00, 0x3bff, MWA_BANK3 },  /* DMD */
-  { 0x3c00, 0x3faf, MWA_RAM },
+  { 0x3c00, 0x3d5f, MWA_RAM },
+  { 0x3d60, 0x3d61, orkin_w },
+  { 0x3d62, 0x3faf, MWA_RAM },
   { 0x3fb0, 0x3fff, wpc_w, &wpc_data },
   { 0x8000, 0xffff, MWA_ROM },
 MEMORY_END
@@ -445,6 +449,27 @@ void wpc_firq(int set, int src) {
   cpu_set_irq_line(WPC_CPUNO, M6809_FIRQ_LINE, wpclocals.firqSrc ? HOLD_LINE : CLEAR_LINE);
 }
 
+/*---------------------------
+/ Emulate the Orkin debugger
+/----------------------------*/
+READ_HANDLER(orkin_r) {
+  switch (offset) {
+    case 0: return orkin_data_read (); break;
+    case 1: return orkin_control_read (); break;
+    default:
+	   return 0;
+  }
+}
+
+WRITE_HANDLER(orkin_w) {
+  switch (offset) {
+    case 0: orkin_data_write (data); break;
+    case 1: orkin_control_write (data); break;
+	 default: break;
+  }
+}
+
+
 /*----------------------
 / Emulate the WPC chip
 /-----------------------*/
@@ -735,6 +760,12 @@ WRITE_HANDLER(wpc_w) {
         mame_fwrite(wpc_printfile, &wpc_data[WPC_PRINTDATA], 1);
       }
       break;
+    case WPC_SERIAL_DATA:
+      break;
+    case WPC_SERIAL_CTRL:
+      break;
+    case WPC_SERIAL_BAUD:
+      break;
     default:
       DBGLOG(("wpc_w %4x %2x\n", offset+WPC_BASE, data));
       break;
@@ -892,6 +923,8 @@ static MACHINE_INIT(wpc) {
     *(memory_region(WPC_CPUREGION) + 0xffec) = 0x00;
     *(memory_region(WPC_CPUREGION) + 0xffed) = 0xff;
   }
+
+  orkin_init ();
 }
 
 static MACHINE_STOP(wpc) {
