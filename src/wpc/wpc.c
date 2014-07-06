@@ -285,10 +285,6 @@ static INTERRUPT_GEN(wpc_vblank) {
   /  during that time.
   /-------------------------------------------------------------*/
   if ((wpclocals.vblankCount % (WPC_VBLANKDIV*WPC_SOLSMOOTH)) == 0) {
-#ifdef PROC_SUPPORT
-		//TODO/PROC: Check implemenatation
-		UINT64 allSol = core_getAllSol();
-#endif
 
     coreGlobals.solenoids = (wpc_data[WPC_SOLENOID1] << 24) |
                             (wpc_data[WPC_SOLENOID3] << 16) |
@@ -296,56 +292,52 @@ static INTERRUPT_GEN(wpc_vblank) {
                              wpc_data[WPC_SOLENOID2];
 
 #ifdef PROC_SUPPORT
-		//TODO/PROC: Check implemenatation
-		allSol = (allSol & 0xffffffff00000000) |
-		         (wpc_data[WPC_SOLENOID1] << 24) |
-		         (wpc_data[WPC_SOLENOID3] << 16) |
-		         (wpc_data[WPC_SOLENOID4] <<  8) |
-		          wpc_data[WPC_SOLENOID2];
-		if (coreGlobals.p_rocEn) {
-			int ii;
-			UINT64 chgSol = (allSol ^ coreGlobals.lastSol) & 0xffffffffffffffff; //vp_getSolMask64();
-			UINT64 tmpSol = allSol;
-
-			for (ii=0; ii<64; ii++) {
-				if ((chgSol & 0x1) && ii != 30) {
-                                //slug    if ((chgSol & 0x1)) {
-
-                                        if (mame_debug) fprintf(stderr,"\nDrive pinmame coil %d",ii);
-                                            // Standard Coils
-                                            if (ii < 32) {
-                                                    procDriveCoil(ii+40, tmpSol & 0x1);
-                                            } else if (ii < 36) {
-                                                    procDriveCoil(ii+4, tmpSol & 0x1);
-                                            } else if (ii < 44) {
-                                                    if (core_gameData->gen & GENWPC_HASWPC95) {
-                                                            procDriveCoil(ii+32, tmpSol & 0x1);
-                                                    } else {
-                                                            procDriveCoil(ii+108, tmpSol & 0x1);
-                                                    }
-                                            } else if (ii < 64) {
-                                                    printf("\nChanging: %d",ii);
-                                            }
-					// TODO:PROC: Upper flipper circuits in WPC-95.
-					// Some games (AFM) seem to use sim files to activate these coils.  Others (MM) don't ever seem to activate them (Trolls).
-				}
-				chgSol >>= 1;
-				tmpSol >>= 1;
-			}
-
-			// GI
-			for (ii = 0; ii < CORE_MAXGI; ii++) {
-				changed_gi[ii] = gi_last[ii] != coreGlobals.gi[ii];
-				gi_last[ii] = coreGlobals.gi[ii];
-
-				if (changed_gi[ii]) {
-					procDriveLamp(ii+72, coreGlobals.gi[ii] > 2);
-				}
-			}
-
-			// This doesn't seem to be happening in core.c.  Why not?
-			coreGlobals.lastSol = allSol;
-		}
+    //TODO/PROC: Check implemenatation
+    if (coreGlobals.p_rocEn) {
+      int ii;
+      static UINT64 lastSol;
+      UINT64 allSol = core_getAllSol();
+      UINT64 chgSol = (allSol ^ lastSol);
+      lastSol = allSol;
+      
+      if (chgSol) {
+        for (ii=0; ii<64; ii++) {
+          if (chgSol & 0x1) {
+            if (mame_debug) {
+              fprintf( stderr,"\nDrive pinmame coil %d %s", ii, (allSol & 0x1) ? "on" : "off");
+            }
+            // Standard Coils
+            if (ii < 32) {
+              procDriveCoil(ii+40, allSol & 0x1);
+            } else if (ii < 36) {
+              procDriveCoil(ii+4, allSol & 0x1);
+            } else if (ii < 44) {
+              if (core_gameData->gen & GENWPC_HASWPC95) {
+                procDriveCoil(ii+32, allSol & 0x1);
+              } else {
+                procDriveCoil(ii+108, allSol & 0x1);
+              }
+            } else if (ii < 64) {
+              printf("\nChanging: %d",ii);
+            }
+            // TODO:PROC: Upper flipper circuits in WPC-95.
+            // Some games (AFM) seem to use sim files to activate these coils.  Others (MM) don't ever seem to activate them (Trolls).
+          }
+          chgSol >>= 1;
+          allSol >>= 1;
+        }
+      }
+  
+      // GI
+      for (ii = 0; ii < CORE_MAXGI; ii++) {
+        changed_gi[ii] = gi_last[ii] != coreGlobals.gi[ii];
+        gi_last[ii] = coreGlobals.gi[ii];
+  
+        if (changed_gi[ii]) {
+          procDriveLamp(ii+72, coreGlobals.gi[ii] > 2);
+        }
+      }
+    }
 #endif
 
     wpc_data[WPC_SOLENOID1] = wpc_data[WPC_SOLENOID2] = 0;
