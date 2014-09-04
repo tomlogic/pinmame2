@@ -261,6 +261,32 @@ void AddIgnoreCoil(int num) {
 	ignoreCoils[num] = TRUE;
 }
 
+/*
+	returns the maximum game coil number (CXX) from the YAML file,
+	not to be confused with the values returned my PRDecode().
+*/
+int procMaxGameCoilNum(void)
+{
+	static int maxCoilNum = -1;
+	
+	if (maxCoilNum == -1 && yamlDoc.size() > 0) {
+		std::string numStr;
+		int coilNum;
+		const YAML::Node& coils = yamlDoc[kCoilsSection];
+
+		for (YAML::Iterator coilsIt = coils.begin(); coilsIt != coils.end(); ++coilsIt) {
+			coilsIt.second()[kNumberField] >> numStr;
+			if (numStr.c_str()[0] == 'C') {
+				coilNum = atoi(&numStr.c_str()[1]);
+				if (coilNum > maxCoilNum) {
+					maxCoilNum = coilNum;
+				}
+			}
+		}
+	}
+
+	return maxCoilNum;
+}
 
 void procConfigureDriverDefaults(void)
 {
@@ -430,8 +456,7 @@ void procConfigureDefaultSwitchRules(void) {
 
 	// Configure switch controller registers
 	switchConfig.clear = FALSE;
-	switchConfig.use_column_8 = (machineType == kPRMachineWPC);
-	//switchConfig.use_column_8 = FALSE;
+	switchConfig.use_column_8 = (machineType == kPRMachineWPC && procMaxGameCoilNum() < 37);
 	switchConfig.use_column_9 = FALSE;	// No WPC machines actually use this.
 	switchConfig.hostEventsEnable = TRUE;
 	switchConfig.directMatrixScanLoopTime = 2;	// milliseconds
