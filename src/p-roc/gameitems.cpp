@@ -8,6 +8,7 @@ extern "C" {
 #include "wpc/s11.h"
 #include "input.h"
 }
+#include <ctype.h>
 #include <fstream>
 #include <yaml-cpp/yaml.h>
 #include "p-roc.h"
@@ -352,7 +353,7 @@ void procConfigureDriverDefaults(void)
 	}
 }
 
-void procConfigureSwitchRules(void)
+void procConfigureFlipperSwitchRules(int enabled)
 {
 	if (yamlDoc.size() > 0) {
 		// WPC Flippers
@@ -372,7 +373,14 @@ void procConfigureSwitchRules(void)
 				yamlDoc[kCoilsSection][flipperName + "Hold"][kNumberField] >> numStr;
 				coilHold = PRDecode(machineType, numStr.c_str());
 
-				ConfigureWPCFlipperSwitchRule(swNum, coilMain, coilHold, kFlipperPulseTime);
+				if (enabled) {
+					ConfigureWPCFlipperSwitchRule(swNum, coilMain, coilHold, kFlipperPulseTime);
+				} else {
+					// unlink coils from switch rules, then make sure they're not driven
+					ConfigureWPCFlipperSwitchRule(swNum, NULL, 0);
+					coilDrivers[coilMain].RequestDrive(FALSE);
+					coilDrivers[coilHold].RequestDrive(FALSE);
+				}
 				AddIgnoreCoil(coilMain);
 				AddIgnoreCoil(coilHold);
 			} else if (machineType == kPRMachineSternWhitestar || machineType == kPRMachineSternSAM) {
@@ -387,6 +395,59 @@ void procConfigureSwitchRules(void)
 			}
 		}
 
+#define MAX_TROUGH_SWITCHES 13
+void procFullTroughDisablesFlippers(void)
+{
+	static int flippersEnabled = TRUE;
+	static int troughSwitches[MAX_TROUGH_SWITCHES];
+	static int troughCount = -1;
+	int ballCount;
+	int i, switchNum;
+	std::string switchName, numStr;
+
+	// build a list of SXX switch numbers with names starting with "trough" and a digit
+	if (troughCount == -1 && yamlDoc.size() > 0 && yamlDoc.FindValue(kSwitchesSection)) {
+		troughCount = 0;
+		if (procGetYamlPinmameSettingInt("fullTroughDisablesFlippers", 0)) {
+			const YAML::Node& switches = yamlDoc[kSwitchesSection];
+			for (YAML::Iterator switchesIt = switches.begin(); switchesIt != switches.end(); ++switchesIt) {
+				switchesIt.first() >> switchName;
+				if (strncmp("trough", switchName.c_str(), 6) == 0
+					&& isdigit(switchName.c_str()[6])) {
+					switchesIt.second()[kNumberField] >> numStr;
+					if (troughCount == MAX_TROUGH_SWITCHES) {
+						fprintf(stderr, "Too many trough switches defined (max %d)\n",
+							MAX_TROUGH_SWITCHES);
+					} else {
+						troughSwitches[troughCount++] = atoi(&numStr.c_str()[1]);
+					}
+				}
+			}
+		}
+	}
+	
+	if (troughCount > 0) {
+		ballCount = 0;
+		for (i = 0; i < troughCount; ++i) {
+			if (core_getSw(troughSwitches[i])) {
+				++ballCount;
+			}
+		}
+		if ((ballCount != troughCount) ^ flippersEnabled) {
+			flippersEnabled = (ballCount != troughCount);
+			fprintf(stderr, "change flippers to %sabled\n", flippersEnabled ? "en" : "dis");
+			procConfigureFlipperSwitchRules(flippersEnabled);
+		}
+	}
+}
+
+void procConfigureSwitchRules(void)
+{
+	std::string numStr;
+
+	procConfigureFlipperSwitchRules(true);
+
+	if (yamlDoc.size() > 0) {
                 printf("\n\nProcessing bumper entries");
                 if (yamlDoc.FindValue(kBumpersSection)) {
                     const YAML::Node& bumpers = yamlDoc[kBumpersSection];

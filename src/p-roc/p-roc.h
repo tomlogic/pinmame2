@@ -57,6 +57,7 @@ void procInitializeCoilDrivers(void);
 void procCheckActiveCoils(void);
 void procConfigureDefaultSwitchRules(void);
 void procConfigureDriverDefaults(void);
+void procFullTroughDisablesFlippers(void);
 void procConfigureSwitchRules(void);
 void procConfigureInputMap(void);
 void procKickbackCheck(int num);

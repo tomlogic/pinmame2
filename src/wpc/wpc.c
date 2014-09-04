@@ -421,6 +421,7 @@ static INTERRUPT_GEN(wpc_vblank) {
 	// Check for any coils that need to be disabled due to inactivity.
 	if (coreGlobals.p_rocEn) {
 		procCheckActiveCoils();
+		procFullTroughDisablesFlippers();
 	}
 #endif
 
