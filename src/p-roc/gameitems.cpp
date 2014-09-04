@@ -116,35 +116,60 @@ void set_swState(int value, int type) {
 	}
 }
 
-void ConfigureWPCFlipperSwitchRule(int swNum, int mainCoilNum, int holdCoilNum, int pulseTime)
+#define MAX_COIL_LIST_ENTRIES 10
+typedef struct PRCoilList
 {
-	const int numDriverRules = 2;
-	PRDriverState fldrivers[numDriverRules];
+	int coilNum;
+	int pulseTime;
+} PRCoilList;
+
+void ConfigureWPCFlipperSwitchRule(int swNum, PRCoilList coilList[], int coilCount)
+{
+	int i;
+	PRDriverState fldrivers[MAX_COIL_LIST_ENTRIES];
 	PRSwitchRule sw;
 
+	if (coilCount > MAX_COIL_LIST_ENTRIES)
+	{
+		return;
+	}
+
 	// Flipper on rules
-	PRDriverGetState(proc, mainCoilNum, &fldrivers[0]);
-	PRDriverStatePulse(&fldrivers[0], pulseTime);	// Pulse coil for 34ms.
-	PRDriverGetState(proc, holdCoilNum, &fldrivers[1]);
-	PRDriverStatePulse(&fldrivers[1], 0);	// Turn on indefintely (set pulse for 0ms)
+	for (i = 0; i < coilCount; ++i)
+	{
+		PRDriverGetState(proc, coilList[i].coilNum, &fldrivers[i]);
+		PRDriverStatePulse(&fldrivers[i], coilList[i].pulseTime);
+	}
 	sw.notifyHost = false;
 	sw.reloadActive = false;
-	PRSwitchUpdateRule(proc, swNum, kPREventTypeSwitchClosedNondebounced, &sw, fldrivers, numDriverRules, true);
+	PRSwitchUpdateRule(proc, swNum, kPREventTypeSwitchClosedNondebounced, &sw, fldrivers, coilCount, true);
 	sw.notifyHost = true;
 	sw.reloadActive = false;
 	PRSwitchUpdateRule(proc, swNum, kPREventTypeSwitchClosedDebounced, &sw, NULL, 0, true);
 
 	// Flipper off rules
-	PRDriverGetState(proc, mainCoilNum, &fldrivers[0]);
-	PRDriverStateDisable(&fldrivers[0]);	// Disable main coil
-	PRDriverGetState(proc, holdCoilNum, &fldrivers[1]);
-	PRDriverStateDisable(&fldrivers[1]);	// Disable hold coil
+	for (i = 0; i < coilCount; ++i)
+	{
+		PRDriverGetState(proc, coilList[i].coilNum, &fldrivers[i]);
+		PRDriverStateDisable(&fldrivers[i]);
+	}
 	sw.notifyHost = false;
 	sw.reloadActive = false;
-	PRSwitchUpdateRule(proc, swNum, kPREventTypeSwitchOpenNondebounced, &sw, fldrivers, numDriverRules, true);
+	PRSwitchUpdateRule(proc, swNum, kPREventTypeSwitchOpenNondebounced, &sw, fldrivers, coilCount, true);
 	sw.notifyHost = true;
 	sw.reloadActive = false;
 	PRSwitchUpdateRule(proc, swNum, kPREventTypeSwitchOpenDebounced, &sw, NULL, 0, true);
+}
+void ConfigureWPCFlipperSwitchRule(int swNum, int mainCoilNum, int holdCoilNum, int pulseTime)
+{
+	PRCoilList coils[2];
+
+	coils[0].coilNum = mainCoilNum;
+	coils[0].pulseTime = pulseTime;
+	coils[1].coilNum = holdCoilNum;
+	coils[1].pulseTime = 0;
+
+	ConfigureWPCFlipperSwitchRule(swNum, coils, 2);
 }
 
 void ConfigureSternFlipperSwitchRule(int swNum, int mainCoilNum, int pulseTime, int patterOnTime, int patterOffTime)
