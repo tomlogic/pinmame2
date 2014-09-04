@@ -171,64 +171,52 @@ void procDeinitialize() {
 	}
 }
 
+std::string procGetYamlPinmameSettingString(const char *key, const char *defaultValue) {
+    std::string retval;
+
+    try {
+       yamlDoc["PRPinmame"][key] >> retval;
+    }
+    catch (...) {
+        retval = defaultValue;
+    }
+
+    return retval;
+}
+
+int procGetYamlPinmameSettingInt(const char *key, int defaultValue) {
+    int retval;
+
+    try {
+       yamlDoc["PRPinmame"][key] >> retval;
+    }
+    catch (...) {
+        // Not defined in YAML or not numeric
+        retval = defaultValue;
+    }
+    
+    return retval;
+}
+
 // When testing and using pinmame it is useful to be able to run
 // the diagnostic switches from the keyboard instead of the machine
 // as having the door switches work the P-ROC requires additional
 // cabling. A YAML entry controls whether the keyboard is active or not
 int procKeyboardWanted(void) {
-    std::string keyb;
-    try {
-       yamlDoc["PRPinmame"]["keyboard"] >> keyb;
-    }
-    catch (...) {
-        keyb = "off";
-    }
-    if (keyb == "on") return 1;
-    else return 0;
-    }
-
+    return (procGetYamlPinmameSettingString("keyboard", "off") == "on");
+}
 
 // Check patter detection from YAML
 void setPatterDetection(void) {
-    std::string pat;
-    try {
-        yamlDoc["PRPinmame"]["autoPatterDetection"] >> pat;
-    }
-    catch (...) {
-        pat = "on";
-    }
-    if (pat == "on") autoPatterDetection = true;
-    else autoPatterDetection = false;
-    printf("\nAutomatic patter detection : %s\n",pat.c_str());
+    autoPatterDetection = (procGetYamlPinmameSettingString("autoPatterDetection", "on") == "on");
+    printf("\nAutomatic patter detection : %s\n", autoPatterDetection ? "on" : "off");
 }
 
 // Called to set the credit/ball display positions
 void procBallCreditDisplay(void) {
-
-    try  {
-        yamlDoc["PRPinmame"]["s11CreditDisplay"] >> S11CreditPos;
-    }
-    catch (...)	{
-        // Not defined in YAML or not numeric
-        S11CreditPos=0;
-    }
-
-    try  {
-        yamlDoc["PRPinmame"]["doubleAlpha"] >> doubleAlpha;
-    }
-    catch (...)	{
-        // Not defined in YAML or not numeric
-        doubleAlpha=0;
-    }
-
-    try  {
-        yamlDoc["PRPinmame"]["s11BallDisplay"] >> S11BallPos;
-    }
-    catch (...)	{
-        // Not defined in YAML or not numeric
-        S11BallPos=0;
-    }
-
+    S11CreditPos = procGetYamlPinmameSettingInt("s11CreditDisplay", 0);
+    doubleAlpha = procGetYamlPinmameSettingInt("doubleAlpha", 0);
+    S11BallPos = procGetYamlPinmameSettingInt("s11BallDisplay", 0);
 }
 
 // Initialize the P-ROC hardware.

@@ -67,6 +67,7 @@ void procDeinitialize(void);
 int procIsActive(void);
 int procKeyboardWanted(void);
 void procBallCreditDisplay(void);
+int procGetYamlPinmameSettingInt(const char *key, int defaultValue);
 void procTickleWatchdog(void);
 void procFlush(void);
 
