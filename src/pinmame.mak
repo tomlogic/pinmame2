@@ -34,7 +34,6 @@ DRVLIBS += $(OBJ)/vidhrdw/tms9928a.o $(OBJ)/machine/pic8259.o
 #
 DRVLIBS += $(PINOBJ)/s4.o $(PINOBJ)/s6.o $(PINOBJ)/s7.o $(PINOBJ)/s11.o
 DRVLIBS += $(PINOBJ)/wpc.o $(PINOBJ)/wmssnd.o
-DRVLIBS += $(PINOBJ)/serial.o
 DRVLIBS += $(PINOBJ)/dedmd.o $(PINOBJ)/desound.o
 DRVLIBS += $(PINOBJ)/gts3.o $(PINOBJ)/gts3dmd.o
 DRVLIBS += $(PINOBJ)/se.o
