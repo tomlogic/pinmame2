@@ -395,6 +395,9 @@ void procConfigureFlipperSwitchRules(int enabled)
 			}
 		}
 
+	}
+}
+
 #define MAX_TROUGH_SWITCHES 13
 void procFullTroughDisablesFlippers(void)
 {
