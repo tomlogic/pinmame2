@@ -313,8 +313,10 @@ static INTERRUPT_GEN(wpc_vblank) {
               } else {
                 procDriveCoil(ii+108, allSol & 0x1);
               }
-            } else if (ii < 64) {
-              printf("\nChanging: %d",ii);
+            } else if (ii >= 50 && ii < 58) { //Fix for DM?
+              procDriveCoil(ii+94, allSol & 0x1);
+            } else {
+              fprintf(stderr,"\n- coil %d does not map", ii);
             }
             // TODO:PROC: Upper flipper circuits in WPC-95.
             // Some games (AFM) seem to use sim files to activate these coils.  Others (MM) don't ever seem to activate them (Trolls).
