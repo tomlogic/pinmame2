@@ -197,11 +197,15 @@ int ii;
     }
   }
 #endif
+#if S11_SOLSMOOTH == 1
+  coreGlobals.solenoids  = locals.solenoids;
+#else
   locals.solsmooth[locals.vblankCount % S11_SOLSMOOTH] = locals.solenoids;
 //#if S11_SOLSMOOTH != 2
 //#  error "Need to update smooth formula"
 //#endif
   coreGlobals.solenoids  = locals.solsmooth[0] | locals.solsmooth[1];
+#endif
   coreGlobals.solenoids2 = locals.extSol << 8;
   locals.solenoids = coreGlobals.pulsedSolState;
   locals.extSol = locals.extSolPulse;
@@ -271,7 +275,7 @@ int ii;
                                 if (core_gameData->hw.gameSpecific1 & S11_RKMUX) {
                                     if ((offSol ^ coreGlobals.lastSol) & 0xff007010) {
                                         // Some are active, so we won't process A/C yet
-                                        if (mame_debug) fprintf(stderr,"\n -AC Select change delayed, code %llu %llu",offSol,allSol);
+                                        if (mame_debug) fprintf(stderr,"\n -AC Select change delayed, code %lx %lx", (long unsigned) offSol,(long unsigned) allSol);
                                     }
                                     else {
                                         // No switched coils are active, so it's safe to do the A/C
@@ -283,7 +287,7 @@ int ii;
                                 else { //Not a Road Kings
                                     // Check if any of the switched solenoids are active
                                     if ((offSol ^ coreGlobals.lastSol) & 0xff0000ff) {
-                                        if (mame_debug) fprintf(stderr,"\n -AC Select change delayed, code %llu %llu",offSol,allSol);
+                                        if (mame_debug) fprintf(stderr,"\n -AC Select change delayed, code %lx %lx", (long unsigned) offSol,(long unsigned) allSol);
                                     }
                                     else {
                                         // If not, it's safe to handle the A/C select
