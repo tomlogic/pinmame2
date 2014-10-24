@@ -405,7 +405,7 @@ void procFullTroughDisablesFlippers(void)
 	static int troughSwitches[MAX_TROUGH_SWITCHES];
 	static int troughCount = -1;
 	int ballCount;
-	int i, switchNum;
+	int i;
 	std::string switchName, numStr;
 
 	// build a list of SXX switch numbers with names starting with "trough" and a digit
