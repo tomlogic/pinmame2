@@ -368,6 +368,8 @@ endif
 CFLAGS += \
 	-fstrict-aliasing \
 	-Werror -Wall -Wno-sign-compare -Wunused \
+	-Wno-error=unused-but-set-variable -Wno-error=strict-aliasing -Wno-error=unused-function \
+	-Wno-error=array-bounds \
 	-Wpointer-arith -Wbad-function-cast -Wcast-align -Waggregate-return \
 	-Wshadow -Wstrict-prototypes -Wundef \
 	-Wformat-security -Wwrite-strings \
