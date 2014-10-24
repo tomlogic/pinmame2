@@ -61,7 +61,7 @@ static UINT8 sample_count;       /* sample number within interp (0-24) */
 static int pitch_count;
 
 static int u[11];
-static int x[10];
+static int x[11];
 
 static INT32 RNG;	/* the random noise generator configuration is: 1 + x + x^3 + x^4 + x^13 */
 
