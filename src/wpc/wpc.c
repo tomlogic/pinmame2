@@ -288,7 +288,7 @@ static INTERRUPT_GEN(wpc_vblank) {
                              wpc_data[WPC_SOLENOID2];
 
 #ifdef PROC_SUPPORT
-    //TODO/PROC: Check implemenatation
+    //TODO/PROC: Check implementation
     if (coreGlobals.p_rocEn) {
       int ii;
       static UINT64 lastSol;
@@ -304,8 +304,10 @@ static INTERRUPT_GEN(wpc_vblank) {
             }
             // Standard Coils
             if (ii < 32) {
+              // C01 to C28, not sure about ii 28 to 31
               procDriveCoil(ii+40, allSol & 0x1);
             } else if (ii < 36) {
+              // upper flipper coils, C33 to C36
               procDriveCoil(ii+4, allSol & 0x1);
             } else if (ii < 44) {
               if (core_gameData->gen & GENWPC_HASWPC95) {
@@ -313,7 +315,11 @@ static INTERRUPT_GEN(wpc_vblank) {
               } else {
                 procDriveCoil(ii+108, allSol & 0x1);
               }
-            } else if (ii >= 50 && ii < 58) { //Fix for DM?
+            } else if (ii < 48) {
+              // lower flipper coils, C29 to C32
+              procDriveCoil(ii-12, allSol & 0x1);
+            } else if (ii >= 50 && ii < 58) {
+              // 8-driver board (DM, IJ, RS, STTNG, TZ), C37 to C44
               procDriveCoil(ii+94, allSol & 0x1);
             } else {
               fprintf(stderr,"\n- coil %d does not map", ii);
