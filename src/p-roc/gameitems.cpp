@@ -430,6 +430,28 @@ void procConfigureFlipperSwitchRules(int enabled)
 	}
 }
 
+/*
+	The procFullTroughDisablesFlippers() function was designed as a way to
+	disable a game's P-ROC flipper rules during attract mode, end-of-ball
+	bonus, high score entry, and even tilt.
+	
+	Since originally adding it, we have discovered better methods of triggering
+	the flipper enable/disable code.  See wpc.c and s11.c for examples of that
+	code.
+	
+	On games where that isn't an option, make use of the following options in
+	PRPinmame:
+		fullTroughDisablesFlippers
+		lightsOutDisablesFlippers
+	
+	When using fullTroughDisablesFlippers, make sure you name the trough jam
+	switch something like "troughJam" instead of "trough6".
+	
+	It may be necessary to expand this code to use a list of switches to
+	determine when to disable the flippers, to take playfield ball locks into
+	consideration.  For example, on FunHouse you would include the first two
+	lock switches with a list of trough switches.
+*/
 #define MAX_TROUGH_SWITCHES 13
 void procFullTroughDisablesFlippers(void)
 {
@@ -438,6 +460,8 @@ void procFullTroughDisablesFlippers(void)
 	static int troughCount = -1;
 	int ballCount;
 	int i;
+	int lightsOut;
+	static int lightsOutCount = 0;		// number of cycles all lamps were off
 	std::string switchName, numStr;
 
 	// build a list of SXX switch numbers with names starting with "trough" and a digit
@@ -461,17 +485,35 @@ void procFullTroughDisablesFlippers(void)
 		}
 	}
 	
-	if (troughCount > 0) {
-		ballCount = 0;
-		for (i = 0; i < troughCount; ++i) {
-			if (core_getSw(troughSwitches[i])) {
-				++ballCount;
-			}
+	lightsOut = procGetYamlPinmameSettingInt("lightsOutDisablesFlippers", 0);
+	for (i = 0; lightsOut && i < CORE_MAXGI; i++) {
+		lightsOut = (coreGlobals.gi[i] != 0);
+	}
+	for (i = 0; lightsOut && i < CORE_STDLAMPCOLS; i++) {
+		lightsOut = (coreGlobals.lampMatrix[i] != 0);
+	}
+	if (lightsOut) {
+		if (++lightsOutCount > 60 && flippersEnabled) {
+			fprintf(stderr, "all lamps off, disabling flippers (TILT?)\n");
+			procConfigureFlipperSwitchRules((flippersEnabled = FALSE));
 		}
-		if ((ballCount != troughCount) ^ flippersEnabled) {
-			flippersEnabled = (ballCount != troughCount);
-			fprintf(stderr, "change flippers to %sabled\n", flippersEnabled ? "en" : "dis");
-			procConfigureFlipperSwitchRules(flippersEnabled);
+	} else {
+		lightsOutCount = 0;
+		if (troughCount > 0) {
+			ballCount = 0;
+			for (i = 0; i < troughCount; ++i) {
+				if (core_getSw(troughSwitches[i])) {
+					++ballCount;
+				}
+			}
+			if (flippersEnabled != (ballCount != troughCount)) {
+				flippersEnabled = (ballCount != troughCount);
+				fprintf(stderr, "change flippers to %sabled\n", flippersEnabled ? "en" : "dis");
+				procConfigureFlipperSwitchRules(flippersEnabled);
+			}
+		} else if (!flippersEnabled) {
+			fprintf(stderr, "lamps back on, enabling flippers\n");
+			procConfigureFlipperSwitchRules((flippersEnabled = TRUE));
 		}
 	}
 }

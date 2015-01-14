@@ -300,12 +300,32 @@ static INTERRUPT_GEN(wpc_vblank) {
         for (ii=0; ii<64; ii++) {
           if (chgSol & 0x1) {
             if (mame_debug) {
-              fprintf( stderr,"\nDrive pinmame coil %d %s", ii, (allSol & 0x1) ? "on" : "off");
+              fprintf( stderr,"Drive SOL%02d %s\n", ii, (allSol & 0x1) ? "on" : "off");
             }
             // Standard Coils
             if (ii < 32) {
-              // C01 to C28, not sure about ii 28 to 31
-              procDriveCoil(ii+40, allSol & 0x1);
+              if (ii > 27 && (core_gameData->gen & GEN_ALLWPC)) { // 29-32 GameOn
+                switch (ii) {
+                  case 28:
+                    fprintf(stderr, "SOL28: %s\n", (allSol & 0x1) ? "game over" : "start game");
+                    // If game supports this "GameOver" solenoid, it's safe to disable the
+                    // flippers here (something that happens when the game starts up) and
+                    // rely on solenoid 30 telling us when to enable them.
+                    if (allSol & 0x01) {
+                      procConfigureFlipperSwitchRules(0);
+                    }
+                    break;
+                  case 30:
+                    fprintf(stderr, "SOL30: %s flippers\n", (allSol & 0x1) ? "enable" : "disable");
+                    procConfigureFlipperSwitchRules(allSol & 0x1);
+                    break;
+                  default:
+                    fprintf(stderr, "SOL%d (%s) does not map\n", ii, (allSol & 0x1) ? "on" : "off");
+                }
+              } else {
+                // C01 to C28 (WPC) or C32 (all others)
+                procDriveCoil(ii+40, allSol & 0x1);
+              }
             } else if (ii < 36) {
               // upper flipper coils, C33 to C36
               procDriveCoil(ii+4, allSol & 0x1);
@@ -320,11 +340,12 @@ static INTERRUPT_GEN(wpc_vblank) {
               procDriveCoil(ii-12, allSol & 0x1);
             } else if (ii >= 50 && ii < 58) {
               // 8-driver board (DM, IJ, RS, STTNG, TZ), C37 to C44
+              // note that this maps to same P-ROC coils as SOL 36-43 on non-WPC95
               procDriveCoil(ii+94, allSol & 0x1);
             } else {
-              fprintf(stderr,"\n- coil %d does not map", ii);
+              fprintf(stderr, "SOL%d (%s) does not map\n", ii, (allSol & 0x1) ? "on" : "off");
             }
-            // TODO:PROC: Upper flipper circuits in WPC-95.
+            // TODO:PROC: Upper flipper circuits in WPC-95. (Is this still the case?)
             // Some games (AFM) seem to use sim files to activate these coils.  Others (MM) don't ever seem to activate them (Trolls).
           }
           chgSol >>= 1;
