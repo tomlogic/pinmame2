@@ -43,7 +43,7 @@ int swMap[numInputCodes];
 int switchEventsBeingProcessed = 0;
 
 void set_swState(int value, int type) {
-
+	int row, col;
     	switchStates[value] = type;
 	switch (type) {
 		case kPREventTypeSwitchOpenDebounced:
@@ -99,15 +99,18 @@ void set_swState(int value, int type) {
                                 if (mame_debug) fprintf(stderr,"\nWPC PROC switch %d is ",value);
                                 //slug
                                 //if (value==99 && (type & kPREventTypeSwitchClosedDebounced))
+                                row = value & 0x7;            // 0 to 7
+                                col = (value >> 4) - 1;       // 1 to 9
 				if (value < 8) {	// Flipper Switches
                                         if(mame_debug) fprintf(stderr,"flipper switch");
 					core_setSw(wpc_m2sw(CORE_FLIPPERSWCOL, value), (type & kPREventTypeSwitchClosedDebounced));
 				} else if (value < 16) {	// Dedicated Switches
                                         if (mame_debug) fprintf(stderr,"direct switch");
-					core_setSw(wpc_m2sw(0, value & 0x7), (type & kPREventTypeSwitchClosedDebounced));
+					core_setSw(wpc_m2sw(0, row), (type & kPREventTypeSwitchClosedDebounced));
 				} else if (value >= 32) {	// Matrix Switches
-                                        if (mame_debug) fprintf(stderr,"col %d, row %d, event %d",((value - 16) >> 4),(value & 0x7)+1,(type & kPREventTypeSwitchClosedDebounced));
-                                    	core_setSw(wpc_m2sw(((value - 16) >> 4), value & 0x7), (type & kPREventTypeSwitchClosedDebounced));
+                                        if (mame_debug) fprintf(stderr,"col %d, row %d, event %d",col,row+1,(type & kPREventTypeSwitchClosedDebounced));
+                                        if (col == 9) col = CORE_CUSTSWCOL;
+                                    	core_setSw(wpc_m2sw(col, row), (type & kPREventTypeSwitchClosedDebounced));
 				}
 			}
 			break;
