@@ -587,7 +587,7 @@ void procConfigureDefaultSwitchRules(void) {
 
 	// Configure switch controller registers
 	switchConfig.clear = FALSE;
-	switchConfig.use_column_8 = (machineType == kPRMachineWPC && procMaxGameCoilNum() < 37);
+	switchConfig.use_column_8 = (machineType == kPRMachineWPC && procMaxGameCoilNum() < 44);
 	switchConfig.use_column_9 = FALSE;	// No WPC machines actually use this.
 	switchConfig.hostEventsEnable = TRUE;
 	switchConfig.directMatrixScanLoopTime = 2;	// milliseconds
