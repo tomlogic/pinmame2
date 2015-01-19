@@ -1472,7 +1472,7 @@ static void drawChar(struct mame_bitmap *bitmap, int row, int col, UINT32 bits, 
 /-----------------------*/
 static MACHINE_INIT(core) {
 #ifdef PROC_SUPPORT
-	char * yaml_filename = (char *)pmoptions.p_roc;
+	char * yaml_filename = pmoptions.p_roc;
 #endif
 
   if (!coreData) { // first time
