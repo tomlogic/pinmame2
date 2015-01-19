@@ -219,6 +219,23 @@ void procBallCreditDisplay(void) {
     S11BallPos = procGetYamlPinmameSettingInt("s11BallDisplay", 0);
 }
 
+// Clear the contents of the P-ROC aux memory to ensure it doesn't try to
+// execute random instructions on startup.
+void procClearAuxMemory(void) {
+	int cmd_index=0;
+	PRDriverAuxCommand auxCommands[255];
+	
+	if (proc) {
+		PRDriverAuxPrepareDisable(&auxCommands[cmd_index++]);
+		while (cmd_index < 255) {
+			PRDriverAuxPrepareJump(&auxCommands[cmd_index++], 0);
+		}
+		// Send the commands.
+		PRDriverAuxSendCommands(proc, auxCommands, cmd_index, 0);
+		procFlush();
+	}
+}
+
 // Initialize the P-ROC hardware.
 int procInitialize(char *yaml_filename) {
 	fprintf(stderr, "\n\n****** Initializing P-ROC ******\n");
@@ -232,6 +249,8 @@ int procInitialize(char *yaml_filename) {
 			return 0;
 		} else {
 			PRReset(proc, kPRResetFlagUpdateDevice);
+
+			procClearAuxMemory();
 			procConfigureDefaultSwitchRules();
 			procConfigureInputMap();
 
