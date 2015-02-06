@@ -35,9 +35,26 @@ YAML::Node yamlDoc;
 int S11CreditPos=0;
 int S11BallPos=0;
 int doubleAlpha=0;
+int startButtonHoldTime=0;
+
+// BOP emulation cannot handle the timing for the helmet lamps
+// This option will force a generic twinkle effect via the aux port
+// whenever the GI is lit
+bool BOPTwinkle = false;
+int twinkleTime = 0;
+int motorOnTime = 0;
+int motorOffTime = 0;
+int helmetPatterns[1000];
+int twinkleCount = 0;
+bool isHelmetFile = false;
 
 // Determine whether automatic patter detection is on or off by default
 bool autoPatterDetection = true;
+
+// Is there an arduino connected for RGB effects?
+bool isArduino = false;
+char arduinoPort[] = "NONE";
+
 
 // Load/Parse the YAML file.
 PRMachineType procLoadMachineYAML(char *filename) {
@@ -206,11 +223,97 @@ int procKeyboardWanted(void) {
     return (procGetYamlPinmameSettingString("keyboard", "off") == "on");
 }
 
+// To quit pinmame, you can hold both flippers and press the start button at the same time.
+// For machines that do not register flipper buttons when the flippers themselves are disabled
+// we can use a parameter in the YAML to determine a period of time to just hold the start button
+void procCheckQuitMethod(void) {
+    startButtonHoldTime = procGetYamlPinmameSettingInt("startButtonHoldTime", 0);
+    if (startButtonHoldTime > 0) printf("\nStart button hold time to quit : %dms\n",startButtonHoldTime);
+    else printf("\nHolding start button will not quit");
+    
+    }
+
+
 // Check patter detection from YAML
 void setPatterDetection(void) {
     autoPatterDetection = (procGetYamlPinmameSettingString("autoPatterDetection", "on") == "on");
-    printf("\nAutomatic patter detection : %s\n", autoPatterDetection ? "on" : "off");
+    
+    printf("\nAutomatic patter detection : %s\n", autoPatterDetection ? "Enabled" : "Disabled");
+    
 }
+
+// Check if we have an arduino port specified within the YAML which will be used for 
+// controlling the RGB lamps
+void procCheckArduinoRGB(void) {
+    std::string port;
+
+    try {
+        yamlDoc["PRGame"]["arduino"] >> port;
+    }
+    catch (...) {
+        port = "none";
+    }
+    if (port == "none") 
+        isArduino = false;
+    else {
+        isArduino = true;
+        strcpy(arduinoPort, port.c_str());
+        procConfigureRGBLamps();
+        printf("\nArduino enabled for RGB control on port %s",arduinoPort);
+    }
+}
+
+// Bride of Pinbot can have some additional handling.  The clock/data lines which control the helmet lamps need
+// more precise timing than we can catch via emulation.  By default, the code will still try to run with
+// emulation, but an alternative is to add a BOPTwinkle parameter into the YAML file.  In this case, the helmet lamps
+// (and the motor/relay, since they are in the same driver group) will be controlled via the aux command logic
+void procSetBOPHelmet(void) {
+    std::string helmetfile;
+    twinkleTime = procGetYamlPinmameSettingInt("BOPTwinkle", 0);
+    if (twinkleTime > 0) {
+        // If the twinkleTime (time between lamp transitions) exists in the YAML, look to see if a file of binary
+        // lamp patterns is also defined.
+        helmetfile = procGetYamlPinmameSettingString("BOPHelmetFile", "none");
+        if (helmetfile != "none")
+            isHelmetFile = true;
+        motorOnTime = procGetYamlPinmameSettingInt("BOPMotorOn", 65);
+        motorOffTime = procGetYamlPinmameSettingInt("BOPMotorOff", 65);
+        
+        // If there is a file of transitions defined, then read it in.
+        if (isHelmetFile) {
+            if (mame_debug) fprintf(stderr,"\n Helmet lamp file is %s",helmetfile.c_str());
+              std::string line;
+              std::ifstream myfile(helmetfile.c_str());
+              if (myfile.is_open())
+              {
+                while ( getline (myfile,line) )
+                {
+                    char * ptr;
+                    long parsed = strtol(line.c_str(), & ptr, 2);
+                    if (mame_debug) fprintf(stderr,"\n Read %lX\n", parsed);
+                    helmetPatterns[twinkleCount++] = parsed;
+                }
+                myfile.close();
+              }
+        }
+
+        BOPTwinkle = true;
+
+        // Driver group 8 is the one we need to control precisely so disable it from being handled via
+        // standard P-ROC control
+        PRDriverGroupDisable(proc,8);
+        //setupBOPAuxCommands();
+        // And then disable them from a pinmame automatic handling perspective
+        AddIgnoreCoil(64); // Helmet Data Port
+        AddIgnoreCoil(65); // Helmet Clock Port
+        AddIgnoreCoil(66); // Motor Relay
+        AddIgnoreCoil(67); // Head Motor
+        if (mame_debug) fprintf(stderr,"\n\nBride of Pinbot Aux enabled with twinkleTime %d, motor on %d, motor off %d\n",twinkleTime,motorOnTime,motorOffTime);
+    }
+    else BOPTwinkle = false;
+    
+}
+
 
 // Called to set the credit/ball display positions
 void procBallCreditDisplay(void) {
@@ -241,6 +344,8 @@ int procInitialize(char *yaml_filename) {
 	fprintf(stderr, "\n\n****** Initializing P-ROC ******\n");
         setMachineType(yaml_filename);
         setPatterDetection();
+        procCheckQuitMethod();
+        
 	if (machineType != kPRMachineInvalid) {
 		proc = PRCreate(machineType);
 		if (proc == kPRHandleInvalid) {
@@ -259,6 +364,8 @@ int procInitialize(char *yaml_filename) {
 
 			procConfigureDriverDefaults();
                         
+                        procSetBOPHelmet();
+                        procCheckArduinoRGB();
 
 			if (machineType != kPRMachineWPCAlphanumeric) {
 				procDMDInit();

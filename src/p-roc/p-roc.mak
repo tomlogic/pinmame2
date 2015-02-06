@@ -11,6 +11,7 @@ DEFS += -DPROC_SUPPORT
 PROCOBJS = \
  $(OBJ)/p-roc/p-roc.o \
  $(OBJ)/p-roc/display.o \
+ $(OBJ)/p-roc/Serial.o \
  $(OBJ)/p-roc/gameitems.o
 
 # add libraries for P-ROC

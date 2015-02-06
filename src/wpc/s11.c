@@ -197,15 +197,11 @@ int ii;
     }
   }
 #endif
-#if S11_SOLSMOOTH == 1
-  coreGlobals.solenoids  = locals.solenoids;
-#else
   locals.solsmooth[locals.vblankCount % S11_SOLSMOOTH] = locals.solenoids;
 //#if S11_SOLSMOOTH != 2
 //#  error "Need to update smooth formula"
 //#endif
   coreGlobals.solenoids  = locals.solsmooth[0] | locals.solsmooth[1];
-#endif
   coreGlobals.solenoids2 = locals.extSol << 8;
   locals.solenoids = coreGlobals.pulsedSolState;
   locals.extSol = locals.extSolPulse;
@@ -260,7 +256,7 @@ int ii;
                                                 if (ii==24) procDriveCoil(44,0);
                                                 else procDriveCoil(ii+27,0);
                                                 }
-                                            else procDriveCoil(ii+16, 0);
+                                            else if (ii < 44) procDriveCoil(ii+16, 0);
                                             }
                                     }
                                     chgSol1 >>= 1;
@@ -312,7 +308,7 @@ int ii;
                                                 if (ii==24) procDriveCoil(44,1);
                                                 else procDriveCoil(ii+27,1);
                                                 }
-                                            else procDriveCoil(ii+16, 1);
+                                            else if (ii< 44) procDriveCoil(ii+16, 1);
                                             }
                                     }
                                     chgSol2 >>= 1;

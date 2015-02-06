@@ -22,6 +22,7 @@
 #define kPatterOffTimeField "patterOffTime"
 #define kKickbackDelayOnField "delayOnTime"
 #define kKickbackDelayOffField "delayOffTime"
+#define kLampRGBEquivalentField "rgb_equiv"
 #define kBusField "bus"
 #define kAuxPortValue "AuxPort"
 
@@ -62,6 +63,9 @@ void procConfigureFlipperSwitchRules(int enabled);
 void procConfigureSwitchRules(void);
 void procConfigureInputMap(void);
 void procKickbackCheck(int num);
+void procConfigureRGBLamps(void);
+void procDisableAuxBus(void);
+void AddIgnoreCoil(int num);
 
 // Generic P-ROC functions.
 int procInitialize(char *yaml_filename);
@@ -72,6 +76,7 @@ void procBallCreditDisplay(void);
 int procGetYamlPinmameSettingInt(const char *key, int defaultValue);
 void procTickleWatchdog(void);
 void procFlush(void);
+void procCheckArduinoF14(void);
 
 int osd_is_proc_pressed(int code);
 
