@@ -18,25 +18,23 @@ extern "C" {
 // Handle to proc instance
 extern PRHandle proc;
 
-bool ignoreCoils[80] = { FALSE };
-int coilKickback[256] = { 0 };
-int swKickback[256] = { 0 };
-int lamp_RGB_Equiv[256] = { 0 };
-int cyclesSinceTransition[256] = { 0 };
-int kickbackOnDelay[256];
-int kickbackOffDelay[256];
-
-int current_pattern=0x55aa;
 std::vector<int> activeCoils;
 CoilDriver coilDrivers [256];
 extern PRMachineType machineType;
 extern YAML::Node yamlDoc;
-extern bool autoPatterDetection;
-extern int startButtonHoldTime;
+bool ignoreCoils[80] = { FALSE };
+
+int coilKickback[256] = { 0 };
+int swKickback[256] = { 0 };
+int kickbackOnDelay[256];
+int kickbackOffDelay[256];
+int cyclesSinceTransition[256] = { 0 };
+
+
+int current_pattern=0x55aa;
+
 extern bool BOPTwinkle;
 extern bool isHelmetFile;
-extern bool isArduino;
-extern char arduinoPort[];
 extern int twinkleTime;
 int BOPHead=1;
 int BOPMotor=1;
@@ -52,6 +50,15 @@ extern int twinkleCount;
 long int lastMotorOnTime=0;
 long int lastMotorOffTime=0;
 bool motorDrivePending = TRUE;
+
+extern bool isArduino;
+extern char arduinoPort[];
+int lamp_RGB_Equiv[256] = { 0 };
+
+long int startPressed;  /* Time when the start button was pressed */
+extern bool autoPatterDetection;
+extern int startButtonHoldTime;
+
 
 #define kFlipperLwL          0
 #define kFlipperLwR          1
@@ -788,6 +795,43 @@ void updateBOPHelmet(void) {
 
 }
 
+// If we are controlling the helmet lamps on BOP via the aux port, then every "twinkleTime" ms we need to 
+// progress to the next lamp pattern (if a file was specified in the YAML) or just invert the current pattern if not
+void BOPHelmetCheck(void) {
+
+            static int twinkle_index = 0;
+            long int msTime = clock();
+            
+            // long enough to process ?
+            if (msTime - lastTwinkleTime > twinkleTime) {
+                // If there is a file of patterns, get the next one
+                if (isHelmetFile) {
+                        twinkle_index++;
+                        if (twinkle_index == twinkleCount) {
+                            twinkle_index = 0;
+                        }
+                        current_pattern = helmetPatterns[twinkle_index];
+                }
+                // otherwise just invert the one we have
+                else
+                    current_pattern = current_pattern ^ 0xffff;
+
+                updateBOPHelmet();
+                lastTwinkleTime = clock();
+            }
+            
+            // also if we have a motor drive currently pending, see if enough time has elapsed since the last
+            // command to actually process it
+            if (motorDrivePending) {
+                if ((BOPMotor == 0 && (msTime - lastMotorOffTime > motorOnTime))
+                    || (BOPMotor == 1 && (msTime - lastMotorOffTime > motorOffTime)) ){
+
+                driveBOPHead();
+                motorDrivePending = FALSE;
+                }   
+            }
+}
+
 // If we're running the Bride lamps and face via the aux port
 // then when the game is over we need to clear down the aux code
 // When the game stops, aux code carries on running and if that is
@@ -1105,39 +1149,14 @@ int osd_is_proc_pressed(int code)
     bool retcode;
         // Hooking the BOP helmet cycle in here as it's a piece of code called quite often, but
         // not so often as the watchdog tickle
-        if (BOPTwinkle) {
-            static int twinkle_index = 0;
-            long int msTime = clock();
-            if (msTime - lastTwinkleTime > twinkleTime) {
-                if (isHelmetFile) {
-                        twinkle_index++;
-                        if (twinkle_index == twinkleCount) {
-                            twinkle_index = 0;
-                        }
-                        current_pattern = helmetPatterns[twinkle_index];
-                        }
-                else
-                  current_pattern = current_pattern ^ 0xffff;
-
-                updateBOPHelmet();
-                lastTwinkleTime = clock();
-            }
-            if (motorDrivePending) {
-                if ((BOPMotor == 0 && (msTime - lastMotorOffTime > motorOnTime))
-                    || (BOPMotor == 1 && (msTime - lastMotorOffTime > motorOffTime)) ){
-
-                driveBOPHead();
-
-                motorDrivePending = FALSE;
-                }   
-
-            }
-
-                
-        }
-	earlyInputSetup();
-        if (!isSwitchClosed(swMap[kStartButton])) coreGlobals.startPressed = 0;
-        else if (coreGlobals.startPressed == 0 && startButtonHoldTime != 0) coreGlobals.startPressed = clock();
+        if (BOPTwinkle) BOPHelmetCheck();
+	
+        earlyInputSetup();
+        
+        // If the start button gets pressed, capture when that happened if we have a threshold defined in the YAML
+        if (!isSwitchClosed(swMap[kStartButton])) startPressed = 0;
+        else if (startPressed == 0 && startButtonHoldTime != 0) startPressed = clock();
+        
 	switch (code) {
 		case kFlipperLwL:
 			return (isSwitchClosed(swMap[kFlipperLwL]));
@@ -1145,14 +1164,20 @@ int osd_is_proc_pressed(int code)
 			return (isSwitchClosed(swMap[kFlipperLwR]));
 		case kStartButton:
 			return (isSwitchClosed(swMap[kStartButton]));
+                // Esc is true if both flippers and the start button are active, or if the startbutton has been pressed
+                // for the threshold time
 		case kESQSequence:
                     retcode =
 			 ((osd_is_proc_pressed(kFlipperLwL) &&
 			        osd_is_proc_pressed(kFlipperLwR) &&
 			        osd_is_proc_pressed(kStartButton)) ||
 
-                                (coreGlobals.startPressed > 0 && ( (clock() - coreGlobals.startPressed) > startButtonHoldTime)));
+                                (startPressed > 0 && ( (clock() - startPressed) > startButtonHoldTime)));
+                    
+                    // if we are quitting, clear the aux bus down now as calls from anywhere else never seem
+                    // to get processed
                     if (retcode) procDisableAuxBus();
+                    
                     return (retcode);
 		default:
 			return 0;

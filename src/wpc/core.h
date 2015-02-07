@@ -391,7 +391,6 @@ typedef struct {
 #ifdef PROC_SUPPORT
   int    p_rocEn;         /* P-ROC support enable */
   int   isKickbackLamp[255];
-  long int startPressed;  /* Time when the start button was pressed */
 #endif
   char   segDim[CORE_SEGCOUNT]; /* segments dimming */
 } core_tGlobals;

@@ -336,6 +336,10 @@ static INTERRUPT_GEN(wpc_vblank) {
                 procDriveCoil(ii+108, allSol & 0x1);
               }
             } else if (ii < 48) {
+              // In pre-fliptronic WPC games, coil 44 (odd?) seems to work as the flipper enable/disable
+              if (core_gameData->gen & (GEN_WPCDMD | GEN_WPCALPHA_1 | GEN_WPCALPHA_2)) {
+                  if (ii == 44) procFlipperRelay(allSol & 0x1);
+              } else
               // lower flipper coils, C29 to C32
               procDriveCoil(ii-12, allSol & 0x1);
             } else if (ii >= 50 && ii < 58) {
