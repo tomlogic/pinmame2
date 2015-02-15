@@ -58,6 +58,7 @@ void procInitializeCoilDrivers(void);
 void procCheckActiveCoils(void);
 void procConfigureDefaultSwitchRules(void);
 void procConfigureDriverDefaults(void);
+void procFlipperRelay(int state);
 void procFullTroughDisablesFlippers(void);
 void procConfigureFlipperSwitchRules(int enabled);
 void procConfigureSwitchRules(void);

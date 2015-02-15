@@ -875,7 +875,7 @@ void procDriveLamp(int num, int state) {
                 int sched;
             
                 cmd[0]='W'; // Colour to display - 'W' is white
-                cmd[1]=(char)(lamp_RGB_Equiv[num]-180);  // The lamp number from the Arduino perspective
+                cmd[1]=(char)(lamp_RGB_Equiv[num]-200);  // The lamp number from the Arduino perspective
                 if (state == 0) sched = 0; else sched = 255;  // Schedule is all on (255) or all off (0))
                 cmd[2]=(char)sched;
                 cmd[3]=(char)sched;
