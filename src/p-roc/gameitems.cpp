@@ -13,7 +13,9 @@ extern "C" {
 #include <yaml-cpp/yaml.h>
 #include "p-roc.h"
 #include "p-roc_drivers.h"
-#include <p-roc/Serial.h>
+#if defined(_WINDOWS) || defined(WINDOWS)
+  #include "p-roc/Serial.h"
+#endif
 
 // Handle to proc instance
 extern PRHandle proc;
@@ -864,6 +866,8 @@ void procDriveLamp(int num, int state) {
 
         cyclesSinceTransition[num] = (state ? 1 : -1);
 
+// Serial port support only currently valid for Windows platform
+#if defined(_WINDOWS) || defined(WINDOWS)
         // If the YAML indicated an Arduino is connected, it's for controlling RGB inserts in lamps
         // and we need to check if the lamp being driven here is one of them
         if (isArduino) {
@@ -882,9 +886,9 @@ void procDriveLamp(int num, int state) {
                 cmd[4]=(char)sched;
                 cmd[5]=(char)sched;
                 SP.WriteData(cmd,6);  // and write the data
-}
+            }
         }
-
+#endif
 }
 
 void procGetSwitchEvents(void) {
