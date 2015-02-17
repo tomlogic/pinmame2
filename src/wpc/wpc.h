@@ -244,4 +244,10 @@ extern MACHINE_DRIVER_EXTERN(wpc_95S);
 
 int wpc_m2sw(int col, int row);
 
+#ifdef PROC_SUPPORT
+  typedef int (*wpc_proc_solenoid_handler_t)(int solNum, int enabled);
+  int default_wpc_proc_solenoid_handler(int solNum, int enabled);
+  extern wpc_proc_solenoid_handler_t wpc_proc_solenoid_handler;
+#endif
+
 #endif /* INC_WPC */

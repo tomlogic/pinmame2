@@ -164,6 +164,80 @@ static void wpc_zc(int data) {
 	wpclocals.zc = 1;
 }
 
+#ifdef PROC_SUPPORT
+  /*
+    Configure a function pointer with a default handler for processing
+    solenoid changes.  This allows specific machines to override the handler
+    in their init routine with one that can intercept certain solenoid
+    changes and then have the default handler cover all other cases.
+    
+    `solNum` is 0 to 63 and represents a bit number in the value returned by
+    core_getAllSol().
+    
+    `enabled` indicates whether the solenoid has changed to enabled (1) or
+    disabled (0).
+    
+    Returns 1 if the solenoid change was processed, 0 if not.
+  */
+  wpc_proc_solenoid_handler_t wpc_proc_solenoid_handler = default_wpc_proc_solenoid_handler;
+  int default_wpc_proc_solenoid_handler(int solNum, int enabled) {
+    // Standard Coils
+    if (solNum < 32) {
+      if (solNum > 27 && (core_gameData->gen & GEN_ALLWPC)) { // 29-32 GameOn
+        switch (solNum) {
+          case 28:
+            fprintf(stderr, "SOL28: %s\n", enabled ? "game over" : "start game");
+            // If game supports this "GameOver" solenoid, it's safe to disable the
+            // flippers here (something that happens when the game starts up) and
+            // rely on solenoid 30 telling us when to enable them.
+            if (enabled) {
+              procConfigureFlipperSwitchRules(0);
+            }
+            break;
+          case 30:
+            fprintf(stderr, "SOL30: %s flippers\n", enabled ? "enable" : "disable");
+            procConfigureFlipperSwitchRules(enabled);
+            break;
+          default:
+            fprintf(stderr, "SOL%d (%s) does not map\n", solNum, enabled ? "on" : "off");
+            return 0;
+        }
+      } else {
+        // C01 to C28 (WPC) or C32 (all others)
+        procDriveCoil(solNum+40, enabled);
+      }
+    } else if (solNum < 36) {
+      // upper flipper coils, C33 to C36
+      procDriveCoil(solNum+4, enabled);
+    } else if (solNum < 44) {
+      if (core_gameData->gen & GENWPC_HASWPC95) {
+        procDriveCoil(solNum+32, enabled);
+      } else {
+        procDriveCoil(solNum+108, enabled);
+      }
+    } else if (solNum < 48) {
+      // In pre-fliptronic WPC games, coil 44 (odd?) seems to work as the flipper enable/disable
+      if (core_gameData->gen & (GEN_WPCDMD | GEN_WPCALPHA_1 | GEN_WPCALPHA_2)) {
+          if (solNum == 44) procFlipperRelay(enabled);
+      } else {
+        // lower flipper coils, C29 to C32
+        procDriveCoil(solNum-12, enabled);
+      }
+    } else if (solNum >= 50 && solNum < 58) {
+      // 8-driver board (DM, IJ, RS, STTNG, TZ), C37 to C44
+      // note that this maps to same P-ROC coils as SOL 36-43 on non-WPC95
+      procDriveCoil(solNum+94, enabled);
+    } else {
+      fprintf(stderr, "SOL%d (%s) does not map\n", solNum, enabled ? "on" : "off");
+      return 0;
+    }
+    // TODO:PROC: Upper flipper circuits in WPC-95. (Is this still the case?)
+    // Some games (AFM) seem to use sim files to activate these coils.  Others (MM) don't ever seem to activate them (Trolls).
+
+    return 1;
+  }
+#endif
+
 /*-----------------
 /  Machine drivers
 /------------------*/
@@ -302,55 +376,7 @@ static INTERRUPT_GEN(wpc_vblank) {
             if (mame_debug) {
               fprintf( stderr,"Drive SOL%02d %s\n", ii, (allSol & 0x1) ? "on" : "off");
             }
-            // Standard Coils
-            if (ii < 32) {
-              if (ii > 27 && (core_gameData->gen & GEN_ALLWPC)) { // 29-32 GameOn
-                switch (ii) {
-                  case 28:
-                    fprintf(stderr, "SOL28: %s\n", (allSol & 0x1) ? "game over" : "start game");
-                    // If game supports this "GameOver" solenoid, it's safe to disable the
-                    // flippers here (something that happens when the game starts up) and
-                    // rely on solenoid 30 telling us when to enable them.
-                    if (allSol & 0x01) {
-                      procConfigureFlipperSwitchRules(0);
-                    }
-                    break;
-                  case 30:
-                    fprintf(stderr, "SOL30: %s flippers\n", (allSol & 0x1) ? "enable" : "disable");
-                    procConfigureFlipperSwitchRules(allSol & 0x1);
-                    break;
-                  default:
-                    fprintf(stderr, "SOL%d (%s) does not map\n", ii, (allSol & 0x1) ? "on" : "off");
-                }
-              } else {
-                // C01 to C28 (WPC) or C32 (all others)
-                procDriveCoil(ii+40, allSol & 0x1);
-              }
-            } else if (ii < 36) {
-              // upper flipper coils, C33 to C36
-              procDriveCoil(ii+4, allSol & 0x1);
-            } else if (ii < 44) {
-              if (core_gameData->gen & GENWPC_HASWPC95) {
-                procDriveCoil(ii+32, allSol & 0x1);
-              } else {
-                procDriveCoil(ii+108, allSol & 0x1);
-              }
-            } else if (ii < 48) {
-              // In pre-fliptronic WPC games, coil 44 (odd?) seems to work as the flipper enable/disable
-              if (core_gameData->gen & (GEN_WPCDMD | GEN_WPCALPHA_1 | GEN_WPCALPHA_2)) {
-                  if (ii == 44) procFlipperRelay(allSol & 0x1);
-              } else
-              // lower flipper coils, C29 to C32
-              procDriveCoil(ii-12, allSol & 0x1);
-            } else if (ii >= 50 && ii < 58) {
-              // 8-driver board (DM, IJ, RS, STTNG, TZ), C37 to C44
-              // note that this maps to same P-ROC coils as SOL 36-43 on non-WPC95
-              procDriveCoil(ii+94, allSol & 0x1);
-            } else {
-              fprintf(stderr, "SOL%d (%s) does not map\n", ii, (allSol & 0x1) ? "on" : "off");
-            }
-            // TODO:PROC: Upper flipper circuits in WPC-95. (Is this still the case?)
-            // Some games (AFM) seem to use sim files to activate these coils.  Others (MM) don't ever seem to activate them (Trolls).
+            wpc_proc_solenoid_handler(ii, allSol & 0x1);
           }
           chgSol >>= 1;
           allSol >>= 1;
