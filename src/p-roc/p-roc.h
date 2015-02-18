@@ -52,6 +52,7 @@ void procDisplayText(char *top, char *bottom);
 // Gameitem functions
 void procSetSwitchStates(void);
 void procDriveLamp(int num, int state);
+void procDriveCoilDirect(int num, int state);
 void procDriveCoil(int num, int state);
 void procGetSwitchEvents(void);
 void procInitializeCoilDrivers(void);

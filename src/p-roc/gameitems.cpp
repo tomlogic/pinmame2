@@ -1094,6 +1094,11 @@ void procFlipperRelay(int state) {
 }
 
 
+// Always drive the coil, even if it's in the ignoreCoil list.
+void procDriveCoilDirect(int num, int state) {
+	coilDrivers[num].RequestDrive(state);
+}
+
 
 void procDriveCoil(int num, int state) {
     if (mame_debug) {
