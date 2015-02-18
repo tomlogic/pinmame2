@@ -154,12 +154,6 @@ void set_swState(int value, int type) {
 }
 
 #define MAX_COIL_LIST_ENTRIES 10
-typedef struct PRCoilList
-{
-	int coilNum;
-	int pulseTime;
-} PRCoilList;
-
 void ConfigureWPCFlipperSwitchRule(int swNum, PRCoilList coilList[], int coilCount)
 {
 	int i;

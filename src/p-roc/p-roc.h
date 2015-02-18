@@ -68,6 +68,12 @@ void procConfigureRGBLamps(void);
 void procDisableAuxBus(void);
 void AddIgnoreCoil(int num);
 
+typedef struct PRCoilList {
+	int coilNum;
+	int pulseTime;
+} PRCoilList;
+void ConfigureWPCFlipperSwitchRule(int swNum, PRCoilList coilList[], int coilCount);
+
 // Generic P-ROC functions.
 int procInitialize(char *yaml_filename);
 void procDeinitialize(void);
