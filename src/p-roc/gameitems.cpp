@@ -318,7 +318,7 @@ void procKickbackCheck(int num)
 // which are handled by switch rules like pop bumpers, or the helmet lamps in BOP
 void AddIgnoreCoil(int num) {
     if(mame_debug) fprintf(stderr,"\nIgnoring drives to coil %i",num);
-	ignoreCoils[num] = TRUE;
+    ignoreCoils[num] = TRUE;
 }
 
 /*
@@ -603,8 +603,8 @@ void procConfigureSwitchRules(void)
                         AddIgnoreCoil(coilNum);
                         printf("\n- processed %s",kickbackName.c_str());
                         if (mame_debug) fprintf(stderr,"\nKicker %s is lamp %d, switch %d, coil %d, delay on %d, delay off %d",kickbackName.c_str(),lampNum,swNum,coilNum, delayOnTime, delayOffTime);
+                    }
                 }
-            }
                 else printf("\n- no entries found");
 	}
 }
@@ -785,9 +785,6 @@ void updateBOPHelmet(void) {
     cmd_index = 0;
     PRDriverAuxPrepareDisable(&auxCommands[cmd_index++]);
     PRDriverAuxSendCommands(proc, auxCommands, cmd_index, 0);
-    
-
-
 }
 
 // If we are controlling the helmet lamps on BOP via the aux port, then every "twinkleTime" ms we need to 
@@ -821,8 +818,8 @@ void BOPHelmetCheck(void) {
                 if ((BOPMotor == 0 && (msTime - lastMotorOffTime > motorOnTime))
                     || (BOPMotor == 1 && (msTime - lastMotorOffTime > motorOffTime)) ){
 
-                driveBOPHead();
-                motorDrivePending = FALSE;
+                    driveBOPHead();
+                    motorDrivePending = FALSE;
                 }   
             }
 }
@@ -896,8 +893,7 @@ void procGetSwitchEvents(void) {
 			if (machineType != kPRMachineWPCAlphanumeric) {
 				procUpdateDMD();
 			}
-		}
-		else {
+		} else {
                     	set_swState(pEvent->value, pEvent->type);
 		}
 	}
@@ -1073,20 +1069,19 @@ void procDriveCoil(int num, int state) {
              fprintf(stderr,"\n -procDriveCoil %d %d",num,state);
     }
         
-	if (!ignoreCoils[num]) {
-		coilDrivers[num].RequestDrive(state);
-	}
-        else if (BOPTwinkle) {
-
-            if (num == 66) {BOPHead = !state; }
-            else if (num == 67) {
-                BOPMotor = !state;
-                if (BOPMotor == 0) lastMotorOnTime = clock();
-                else lastMotorOffTime = clock();
-                motorDrivePending = TRUE;
-}
+    if (!ignoreCoils[num]) {
+        coilDrivers[num].RequestDrive(state);
+    }
+    else if (BOPTwinkle) {
+        if (num == 66) {
+            BOPHead = !state;
+        } else if (num == 67) {
+            BOPMotor = !state;
+            if (BOPMotor == 0) lastMotorOnTime = clock();
+            else lastMotorOffTime = clock();
+            motorDrivePending = TRUE;
         }
-
+    }
 }
 
 
