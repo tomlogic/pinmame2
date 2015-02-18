@@ -449,39 +449,6 @@ void procConfigureFlipperSwitchRules(int enabled)
 				AddIgnoreCoil(coilMain);
 			}
 		}
-
-		printf("Configuring DemoMan Handles\n");
-		{
-			PRCoilList coils[6];
-			int i;
-
-			// rightHandle
-			coils[0].coilNum = PRDecode(machineType, "FLRM");
-			coils[0].pulseTime = kFlipperPulseTime;
-			coils[1].coilNum = PRDecode(machineType, "FLRH");
-			coils[1].pulseTime = 0;
-			ConfigureWPCFlipperSwitchRule(PRDecode(machineType, "SF6"),
-				coils, enabled ? 2 : 0);
-
-			// leftHandle
-			coils[2].coilNum = PRDecode(machineType, "FLLM");
-			coils[2].pulseTime = kFlipperPulseTime;
-			coils[3].coilNum = PRDecode(machineType, "FLLH");
-			coils[3].pulseTime = 0;
-			coils[4].coilNum = PRDecode(machineType, "FULM");
-			coils[4].pulseTime = kFlipperPulseTime;
-			coils[5].coilNum = PRDecode(machineType, "FULH");
-			coils[5].pulseTime = 0;
-			ConfigureWPCFlipperSwitchRule(PRDecode(machineType, "SF8"),
-				&coils[2], enabled ? 4 : 0);
-			
-			if (! enabled) {
-				// make sure none of the coils are being driven
-				for (i = 0; i < 6; ++i) {
-					coilDrivers[coils[i].coilNum].RequestDrive(FALSE);
-				}
-			}
-		}
 	}
 }
 

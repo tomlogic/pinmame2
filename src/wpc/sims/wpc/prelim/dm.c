@@ -366,11 +366,68 @@ static core_tGameData dmGameData = {
   }
 };
 
+#ifdef PROC_SUPPORT
+  #include "p-roc/p-roc.h"
+  /*
+    Override the flipper enable/disable code in default_wpc_proc_solenoid_handler()
+    with special support for the handles on Demolition Man.
+  */
+  int dm_wpc_proc_solenoid_handler(int solNum, int enabled) {
+    static const char *coil_name[] = { "FLRM", "FLRH", "FLLM", "FLLH", "FULM", "FULH" };
+    static const char *sw_right[] = { "SF2", "SF6" };
+    static const char *sw_left[]  = { "SF4", "SF8" };
+    int flippers = -1;
+    
+    switch (solNum) {
+      case 28:
+        // If game supports this "GameOver" solenoid, it's safe to disable the
+        // flippers here (something that happens when the game starts up) and
+        // rely on solenoid 30 telling us when to enable them.
+        if (enabled)
+          flippers = 0;
+        break;
+      case 30:
+        flippers = enabled;
+        break;
+      default:
+        return default_wpc_proc_solenoid_handler(solNum, enabled);
+    }
+    
+    if (flippers != -1) {
+      PRCoilList coils[6];
+      int i;
+      
+      for (i = 0; i < 6; ++i) {
+        coils[i].coilNum = PRDecode(kPRMachineWPC, coil_name[i]);
+        coils[i].pulseTime = (i & 1) ? 0 : kFlipperPulseTime;
+        AddIgnoreCoil(coils[i].coilNum);
+      }
+      
+      for (i = 0; i < 2; ++i) {
+        ConfigureWPCFlipperSwitchRule(PRDecode(kPRMachineWPC, sw_right[i]),
+          &coils[0], flippers ? 2 : 0);
+        ConfigureWPCFlipperSwitchRule(PRDecode(kPRMachineWPC, sw_left[i]),
+          &coils[2], flippers ? 4 : 0);
+      }
+        
+      if (! flippers) {
+        // make sure none of the coils are being driven
+        for (i = 0; i < 6; ++i) {
+          procDriveCoilDirect(coils[i].coilNum, FALSE);
+        }
+      }
+    }
+    
+    return 1;
+  }
+#endif
+
 /*---------------
 /  Game handling
 /----------------*/
 static void init_dm(void) {
   core_gameData = &dmGameData;
+  wpc_proc_solenoid_handler = dm_wpc_proc_solenoid_handler;
 }
 
 static int dm_getSol(int solNo) {
