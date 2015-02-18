@@ -1879,6 +1879,7 @@ DRIVER(dm,dh5)          //WPC-528:  02/95 W Demolition Man (DH-5) with rude spee
 DRIVER(dm,dh5b)         //WPC-528:  02/95 W Demolition Man (DH-5) with rude speech LED Ghost Fix (Coin Play)
 DRIVER(dm,h6)           //WPC-528:  02/95 W Demolition Man (H-6) with rude speech
 DRIVER(dm,h6b)          //WPC-528:  02/95 W Demolition Man (H-6) with rude speech (Coin Play)
+DRIVER(dm,dt101)        //          04/14   Demolition Man (FreeWPC/Demolition Time 1.01)
 DRIVER(tafg,lx3)        //WPC:      10/94 B The Addams Family Special Collectors Edition (LX-3)
 DRIVER(tafg,dx3)        //WPC:      10/94 B The Addams Family Special Collectors Edition (DX-3) LED Ghost Fix
 DRIVER(tafg,la2)        //WPC:      10/94 B The Addams Family Special Collectors Edition (LA-2)
