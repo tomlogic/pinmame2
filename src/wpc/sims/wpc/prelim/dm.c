@@ -427,7 +427,9 @@ static core_tGameData dmGameData = {
 /----------------*/
 static void init_dm(void) {
   core_gameData = &dmGameData;
+#ifdef PROC_SUPPORT
   wpc_proc_solenoid_handler = dm_wpc_proc_solenoid_handler;
+#endif
 }
 
 static int dm_getSol(int solNo) {
