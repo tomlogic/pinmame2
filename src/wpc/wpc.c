@@ -702,6 +702,18 @@ WRITE_HANDLER(wpc_w) {
       data |= wpc_data[offset];
       break;
     case WPC_SOLENOID3:
+#ifdef PROC_SUPPORT
+      /* Demolition Man claw motor hack for P-ROC.  Ignore when both left and
+         right motors are enabled.  ROMs pulse the opposite motor for about
+         0.03ms every 16.5ms, but solenoid smoothing results in both always
+         being enabled, and therefore unable to actually move the claw!
+      */
+      if (coreGlobals.p_rocEn
+          && (data & 0x0C) == 0x0C
+          && strncmp(Machine->gamedrv->name, "dm_", 3) == 0) {
+        data &= ~0x0C;
+      }
+#endif
       coreGlobals.pulsedSolState = (coreGlobals.pulsedSolState & 0xFF00FFFF) | (data<<16);
       data |= wpc_data[offset];
       break;
