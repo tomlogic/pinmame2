@@ -189,7 +189,11 @@ MY_CFLAGS = $(CFLAGS) $(IL) $(CFLAGS.$(MY_CPU)) \
 	$(COREDEFS) $(SOUNDDEFS) $(CPUDEFS) $(ASMDEFS) $(DEFS)\
 	$(INCLUDES) $(INCLUDE_PATH)
 
-MY_LIBS = $(LIBS) $(LIBS.$(ARCH)) $(LIBS.$(DISPLAY_METHOD)) -lz -lyaml-cpp -lpinproc -lftdi -lusb
+MY_LIBS = $(LIBS) $(LIBS.$(ARCH)) $(LIBS.$(DISPLAY_METHOD)) -lz
+
+ifdef PROC
+MY_LIBS += -lyaml-cpp -lpinproc -lftdi1 -lusb
+endif
 
 ifdef SEPARATE_LIBM
 MY_LIBS += -lm
@@ -295,9 +299,12 @@ endif
 OBJS  += $(subst $(OBJ)/vidhrdw/vector.o, ,$(COREOBJS)) $(DRVLIBS) \
  $(OBJ)/unix.$(DISPLAY_METHOD)/osdepend.a $(OBJ)/unix.$(DISPLAY_METHOD)/vector.o
 
-PROC_OBJS += $(PROC_OBJ)/p-roc.o $(PROC_OBJ)/display.o $(PROC_OBJ)/gameitems.o
+MY_OBJDIRS = $(CORE_OBJDIRS) $(sort $(OBJDIRS))
 
-MY_OBJDIRS = $(CORE_OBJDIRS) $(sort $(OBJDIRS)) $(PROC_OBJ)
+ifdef PROC
+PROC_OBJS = $(PROC_OBJ)/p-roc.o $(PROC_OBJ)/display.o $(PROC_OBJ)/gameitems.o
+MY_OBJDIRS += $(PROC_OBJ)
+endif
 
 ##############################################################################
 # Begin of the real makefile.
@@ -358,7 +365,6 @@ $(OBJ)/%.a:
 	$(CC_COMPILE) ar $(AR_OPTS) $@ $^
 	$(CC_COMPILE) $(RANLIB) $@
 
-#CPP_OBJS = xpinmamed.obj/wpc/proc.o
 $(PROC_OBJ)/%.o: src/p-roc/%.cpp
 	$(CC_COMMENT) @echo 'Compiling $< ...'
 	$(CC_COMPILE) $(CPP) $(MY_CFLAGS) -o $@ -c $<
