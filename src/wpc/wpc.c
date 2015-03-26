@@ -694,6 +694,26 @@ WRITE_HANDLER(wpc_w) {
       //DBGLOG(("W:DIPSWITCH %x\n",data));
       break; /* just save value */
     case WPC_SOLENOID1:
+#ifdef PROC_SUPPORT
+      if (coreGlobals.p_rocEn) {
+        static data8_t lastdata = 0;
+        /* Doctor Who manual handling of C27 and C28.  Solenoid smoothing was
+           causing failures of the mini playfield.  Since the coils don't change
+           often, this code passes coil changes straight to the P-ROC code
+           instead of waiting for the solenoid change detection code.
+        */
+        if ((data ^ lastdata) & 0x0C
+            && strncmp(Machine->gamedrv->name, "dw_", 3) == 0) {
+          if ((data ^ lastdata) & 0x08) {   // change in C28
+            wpc_proc_solenoid_handler(-28, (data >> 3) & 1);
+          }
+          if ((data ^ lastdata) & 0x04) {   // change in C27
+            wpc_proc_solenoid_handler(-27, (data >> 2) & 1);
+          }
+        }
+        lastdata = data;
+      }
+#endif
       coreGlobals.pulsedSolState = (coreGlobals.pulsedSolState & 0x00FFFFFF) | (data<<24);
       data |= wpc_data[offset];
       break;

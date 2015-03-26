@@ -378,11 +378,38 @@ static core_tGameData dwGameData = {
   }
 };
 
+#ifdef PROC_SUPPORT
+  #include "p-roc/p-roc.h"
+  /*
+    Solenoid smoothing messes up the long-running changes to C27 and C28,
+    so make use of the actual state to determine if it's appropriate to
+    make a change.
+  */
+  int dw_wpc_proc_solenoid_handler(int solNum, int enabled) {
+    switch (solNum) {
+      case 26:  // C27, mini playfield direction
+      case 27:  // C28, mini playfield motor
+        // ignore smoothed coils
+        return 1;
+      case -27: // actual C27 change
+      case -28: // actual C28 change
+        solNum = -solNum - 1;    // convert solNum to 26 (C27) or 27 (C28)
+        // fall through to default return of default solenoid handler
+        break;
+    }
+    
+    return default_wpc_proc_solenoid_handler(solNum, enabled);
+  }
+#endif
+
 /*---------------
 /  Game handling
 /----------------*/
 static void init_dw(void) {
   core_gameData = &dwGameData;
+#ifdef PROC_SUPPORT
+  wpc_proc_solenoid_handler = dw_wpc_proc_solenoid_handler;
+#endif
 }
 
 static void dw_handleMech(int mech) {
