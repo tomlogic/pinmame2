@@ -114,7 +114,7 @@ PRMachineType getRomMachineType() {
 			}
 			break;
                 case GEN_DE:
-                
+                case GEN_S4:
                 case GEN_S11A:
                     
                 case GEN_S11:

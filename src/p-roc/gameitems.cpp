@@ -116,8 +116,8 @@ void set_swState(int value, int type) {
 				} else if (value >= 32) {	// Matrix Switches
                                     	core_setSw(se_m2sw(((value - 32) >> 4), value & 0x7), (type & kPREventTypeSwitchClosedDebounced));
 				}
-			} else if (core_gameData->gen & GEN_ALLS11) {
-                                if (mame_debug) fprintf(stderr,"\nS11 PROC switch %d is ",value);
+			} else if (core_gameData->gen & (GEN_ALLS11 | GEN_S4)) {
+                                if (mame_debug) fprintf(stderr,"\nS4/S11 PROC switch %d is ",value);
 				if (value < 8) {	// Flipper Switches
                                         if (mame_debug) fprintf(stderr,"flipper switch");
 					core_setSw(s11_m2sw(CORE_FLIPPERSWCOL, value), (type & kPREventTypeSwitchClosedDebounced));
