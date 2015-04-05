@@ -385,20 +385,16 @@ static core_tGameData dwGameData = {
     so make use of the actual state to determine if it's appropriate to
     make a change.
   */
-  int dw_wpc_proc_solenoid_handler(int solNum, int enabled) {
-    switch (solNum) {
-      case 26:  // C27, mini playfield direction
-      case 27:  // C28, mini playfield motor
-        // ignore smoothed coils
-        return 1;
-      case -27: // actual C27 change
-      case -28: // actual C28 change
-        solNum = -solNum - 1;    // convert solNum to 26 (C27) or 27 (C28)
-        // fall through to default return of default solenoid handler
-        break;
+  void dw_wpc_proc_solenoid_handler(int solNum, int enabled, int smoothed) {
+    if (solNum == 26 || solNum == 27) {
+      // Ignore smoothed changes to C27 and C28
+      if (smoothed) return;
+
+      // Allow default solenoid handler to process changes to C27 and C28
+      // by telling it that they are actually smoothed.
+      smoothed = TRUE;
     }
-    
-    return default_wpc_proc_solenoid_handler(solNum, enabled);
+    default_wpc_proc_solenoid_handler(solNum, enabled, smoothed);
   }
 #endif
 

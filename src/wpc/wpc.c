@@ -177,10 +177,18 @@ static void wpc_zc(int data) {
     `enabled` indicates whether the solenoid has changed to enabled (1) or
     disabled (0).
     
-    Returns 1 if the solenoid change was processed, 0 if not.
+    `smoothed` indicated whether this came from the period solenoid change
+    processing with smoothed readings (1) or came from an immediate solenoid
+    change in the emulator (0).
   */
   wpc_proc_solenoid_handler_t wpc_proc_solenoid_handler = default_wpc_proc_solenoid_handler;
-  int default_wpc_proc_solenoid_handler(int solNum, int enabled) {
+  void default_wpc_proc_solenoid_handler(int solNum, int enabled, int smoothed) {
+    // by default, we only processed smoothed solenoid readings.  Custom
+    // handlers in the various sims may process non-smoothed readings (for
+    // reduced latency) and ignore the smoothed readings for some solenoids.
+    if (!smoothed)
+      return;
+
     // Standard Coils
     if (solNum < 32) {
       if (solNum > 27 && (core_gameData->gen & GEN_ALLWPC)) { // 29-32 GameOn
@@ -200,7 +208,7 @@ static void wpc_zc(int data) {
             break;
           default:
             fprintf(stderr, "SOL%d (%s) does not map\n", solNum, enabled ? "on" : "off");
-            return 0;
+            return;
         }
       } else {
         // C01 to C28 (WPC) or C32 (all others)
@@ -229,12 +237,26 @@ static void wpc_zc(int data) {
       procDriveCoil(solNum+94, enabled);
     } else {
       fprintf(stderr, "SOL%d (%s) does not map\n", solNum, enabled ? "on" : "off");
-      return 0;
+      return;
     }
     // TODO:PROC: Upper flipper circuits in WPC-95. (Is this still the case?)
     // Some games (AFM) seem to use sim files to activate these coils.  Others (MM) don't ever seem to activate them (Trolls).
-
-    return 1;
+  }
+  
+  // Called from wpc_w() to process immediate changes to solenoid values.
+  void proc_immediate_solenoid_change(int offset, UINT8 new_data) {
+    static UINT32 current_values = 0;
+    UINT32 mask = (0xFF << offset);
+    UINT8 changed_data = new_data ^ ((current_values & mask) >> offset);
+    int i;
+    
+    if (changed_data) {
+      current_values = (current_values & ~mask) | (new_data << offset);
+      for (i = offset; changed_data; ++i, changed_data >>= 1, new_data >>= 1) {
+        if (changed_data & 1)
+          wpc_proc_solenoid_handler(i, new_data & 1, FALSE);
+      }
+    }
   }
 #endif
 
@@ -376,7 +398,7 @@ static INTERRUPT_GEN(wpc_vblank) {
             if (mame_debug) {
               fprintf( stderr,"Drive SOL%02d %s\n", ii, (allSol & 0x1) ? "on" : "off");
             }
-            wpc_proc_solenoid_handler(ii, allSol & 0x1);
+            wpc_proc_solenoid_handler(ii, allSol & 0x1, TRUE);
           }
           chgSol >>= 1;
           allSol >>= 1;
@@ -603,6 +625,18 @@ READ_HANDLER(wpc_r) {
 }
 
 WRITE_HANDLER(wpc_w) {
+#ifdef PROC_SUPPORT
+  if (coreGlobals.p_rocEn) {
+    // process immediate coil changes for C01 to C28
+    switch (offset) {
+      case WPC_SOLENOID1: proc_immediate_solenoid_change(24, data & 0x0F); break;
+      case WPC_SOLENOID2: proc_immediate_solenoid_change( 0, data); break;
+      case WPC_SOLENOID3: proc_immediate_solenoid_change(16, data); break;
+      case WPC_SOLENOID4: proc_immediate_solenoid_change( 8, data); break;
+    }
+  }
+#endif
+
   switch (offset) {
     case WPC_ROMBANK: { /* change rom bank */
       int bank = data & wpclocals.pageMask;
@@ -694,26 +728,6 @@ WRITE_HANDLER(wpc_w) {
       //DBGLOG(("W:DIPSWITCH %x\n",data));
       break; /* just save value */
     case WPC_SOLENOID1:
-#ifdef PROC_SUPPORT
-      if (coreGlobals.p_rocEn) {
-        static data8_t lastdata = 0;
-        /* Doctor Who manual handling of C27 and C28.  Solenoid smoothing was
-           causing failures of the mini playfield.  Since the coils don't change
-           often, this code passes coil changes straight to the P-ROC code
-           instead of waiting for the solenoid change detection code.
-        */
-        if ((data ^ lastdata) & 0x0C
-            && strncmp(Machine->gamedrv->name, "dw_", 3) == 0) {
-          if ((data ^ lastdata) & 0x08) {   // change in C28
-            wpc_proc_solenoid_handler(-28, (data >> 3) & 1);
-          }
-          if ((data ^ lastdata) & 0x04) {   // change in C27
-            wpc_proc_solenoid_handler(-27, (data >> 2) & 1);
-          }
-        }
-        lastdata = data;
-      }
-#endif
       coreGlobals.pulsedSolState = (coreGlobals.pulsedSolState & 0x00FFFFFF) | (data<<24);
       data |= wpc_data[offset];
       break;
@@ -722,18 +736,6 @@ WRITE_HANDLER(wpc_w) {
       data |= wpc_data[offset];
       break;
     case WPC_SOLENOID3:
-#ifdef PROC_SUPPORT
-      /* Demolition Man claw motor hack for P-ROC.  Ignore when both left and
-         right motors are enabled.  ROMs pulse the opposite motor for about
-         0.03ms every 16.5ms, but solenoid smoothing results in both always
-         being enabled, and therefore unable to actually move the claw!
-      */
-      if (coreGlobals.p_rocEn
-          && (data & 0x0C) == 0x0C
-          && strncmp(Machine->gamedrv->name, "dm_", 3) == 0) {
-        data &= ~0x0C;
-      }
-#endif
       coreGlobals.pulsedSolState = (coreGlobals.pulsedSolState & 0xFF00FFFF) | (data<<16);
       data |= wpc_data[offset];
       break;
