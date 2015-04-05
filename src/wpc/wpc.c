@@ -205,6 +205,10 @@ static void wpc_zc(int data) {
           case 30:
             fprintf(stderr, "SOL30: %s flippers\n", enabled ? "enable" : "disable");
             procConfigureFlipperSwitchRules(enabled);
+            // enable flippers on pre-fliptronic games (with no PRFlippers)
+            if (core_gameData->gen & (GEN_WPCALPHA_1 | GEN_WPCALPHA_2 | GEN_WPCDMD)) {
+              procDriveLamp(79, enabled);
+            }
             break;
           default:
             fprintf(stderr, "SOL%d (%s) does not map\n", solNum, enabled ? "on" : "off");
@@ -355,18 +359,6 @@ static INTERRUPT_GEN(wpc_vblank) {
       dmdlocals.nextDMDFrame = (dmdlocals.nextDMDFrame + 1) % DMD_FRAMES;
     }
   }
-
-#ifdef PROC_SUPPORT
-	if (coreGlobals.p_rocEn) {
-		// Enable Flippers for WPC-Alphanumeric machines
-		// This is done here instead of in the init code because the P-ROC's
-		// 1 second watchdog timer expires after the init code runs, leaving
-		// the flippers disabled.
-		if (core_gameData->gen & (GEN_WPCALPHA_1 | GEN_WPCALPHA_2 | GEN_WPCDMD)) {
-			procDriveLamp(79, 1);
-		}
-	}
-#endif
 
   /*--------------------------------------------------------
   /  Most solonoids don't have a holding coil so the software
