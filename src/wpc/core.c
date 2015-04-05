@@ -782,6 +782,7 @@ static void updateDisplay(struct mame_bitmap *bitmap, const struct rectangle *cl
 #ifdef PROC_SUPPORT
 		static UINT16 proc_top[16];
 		static UINT16 proc_bottom[16];
+		int char_width = locals.segData[layout->type & 0x0f].cols+1;
 #endif
 
       if (step < 0) { seg += ii-1; lastSeg += ii-1; }
@@ -826,14 +827,14 @@ static void updateDisplay(struct mame_bitmap *bitmap, const struct rectangle *cl
                                                 if ((core_gameData->gen & (GEN_WPCALPHA_1 | GEN_WPCALPHA_2 | GEN_ALLS11)) &&
 						    (!pmoptions.alpha_on_dmd)) {
                                                     switch (top) {
-                                                        case 0: proc_top[left/16 + (doubleAlpha == 0)] = tmpSeg; break;
+                                                        case 0: proc_top[left/char_width + (doubleAlpha == 0)] = tmpSeg; break;
                                                         case 21:  // This is the ball/credit display if fitted, so work out which position
                                                             if (left == 12) proc_bottom[0] = tmpSeg;
                                                             else if (left == 24) proc_bottom[8] = tmpSeg;
                                                             else if (left == 48) proc_top[0] = tmpSeg;
                                                             else proc_top[8] = tmpSeg;
                                                         break;
-                                                        default: proc_bottom[left/16 + (doubleAlpha == 0)] = tmpSeg; break;
+                                                        default: proc_bottom[left/char_width + (doubleAlpha == 0)] = tmpSeg; break;
 							} 
 						}
 					}
@@ -1509,9 +1510,8 @@ static MACHINE_INIT(core) {
 				// TODO: deInit P-ROC here?
 			}
 			else {
-                             // If this is a Sys11, need to check whether the extra
-                             // display is wanted or not
-                             if (core_gameData->gen & GEN_ALLS11) procBallCreditDisplay();
+                             // read s11CreditDisplay, doubleAlpha and s11BallDisplay settings
+                             procBallCreditDisplay();
 
                              // Added option to enable keyboard for direct switches to YAML
                              g_fHandleKeyboard = procKeyboardWanted();
