@@ -99,6 +99,13 @@ extern int S11BallPos;
 // whether this machine has a lower display of 16 alphanumeric positions
 extern int doubleAlpha;
 
+// P-ROC switch number of cabinet button to hold in order to exit PinMAME
+// (defaults to 'startButton')
+extern int exitButton;
+
+// how long to hold a cabinet button (e.g., startButton) to exit PinMAME
+extern int exitButtonHoldTime;
+
 #ifdef __cplusplus
 }
 #endif

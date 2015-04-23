@@ -35,7 +35,8 @@ YAML::Node yamlDoc;
 int S11CreditPos=0;
 int S11BallPos=0;
 int doubleAlpha=0;
-int startButtonHoldTime=0;
+int exitButton=0;
+int exitButtonHoldTime=0;
 
 // BOP emulation cannot handle the timing for the helmet lamps
 // This option will force a generic twinkle effect via the aux port
@@ -227,11 +228,16 @@ int procKeyboardWanted(void) {
 // For machines that do not register flipper buttons when the flippers themselves are disabled
 // we can use a parameter in the YAML to determine a period of time to just hold the start button
 void procCheckQuitMethod(void) {
-    startButtonHoldTime = procGetYamlPinmameSettingInt("startButtonHoldTime", 0);
-    if (startButtonHoldTime > 0) printf("\nStart button hold time to quit : %dms\n",startButtonHoldTime);
-    else printf("\nHolding start button will not quit");
-    
+    std::string exitButtonName, numStr;
+    exitButtonName = procGetYamlPinmameSettingString("exitButton", "startButton");
+    if (yamlDoc[kSwitchesSection].FindValue(exitButtonName)) {
+        yamlDoc[kSwitchesSection][exitButtonName][kNumberField] >> numStr;
+        exitButton = PRDecode(machineType, numStr.c_str());
+        exitButtonHoldTime = procGetYamlPinmameSettingInt("exitButtonHoldTime", 0);
+        if (exitButtonHoldTime > 0)
+            printf("\nHold %s (%d) for %dms to quit.\n", exitButtonName.c_str(), exitButton, exitButtonHoldTime);
     }
+}
 
 
 // Check patter detection from YAML
@@ -344,7 +350,6 @@ int procInitialize(char *yaml_filename) {
 	fprintf(stderr, "\n\n****** Initializing P-ROC ******\n");
         setMachineType(yaml_filename);
         setPatterDetection();
-        procCheckQuitMethod();
         
 	if (machineType != kPRMachineInvalid) {
 		proc = PRCreate(machineType);
@@ -370,6 +375,7 @@ int procInitialize(char *yaml_filename) {
 			if (machineType != kPRMachineWPCAlphanumeric) {
 				procDMDInit();
 			}
+			procCheckQuitMethod();
                         fprintf(stderr, "\n****** P-ROC Initialization COMPLETE ******\n\n");
 		}
 	}

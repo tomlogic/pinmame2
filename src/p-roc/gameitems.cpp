@@ -57,9 +57,8 @@ extern bool isArduino;
 extern char arduinoPort[];
 int lamp_RGB_Equiv[256] = { 0 };
 
-long int startPressed;  /* Time when the start button was pressed */
+clock_t exitPressed = -1;  /* Time when the exit button was pressed */
 extern bool autoPatterDetection;
-extern int startButtonHoldTime;
 
 
 #define kFlipperLwL          0
@@ -1151,25 +1150,24 @@ int osd_is_proc_pressed(int code)
         earlyInputSetup();
         
         // If the start button gets pressed, capture when that happened if we have a threshold defined in the YAML
-        if (!isSwitchClosed(swMap[kStartButton])) startPressed = 0;
-        else if (startPressed == 0 && startButtonHoldTime != 0) startPressed = clock();
+        if (!isSwitchClosed(exitButton)) exitPressed = -1;
+        else if (exitPressed == -1 && exitButtonHoldTime != 0) exitPressed = clock();
         
 	switch (code) {
 		case kFlipperLwL:
-			return (isSwitchClosed(swMap[kFlipperLwL]));
 		case kFlipperLwR:
-			return (isSwitchClosed(swMap[kFlipperLwR]));
 		case kStartButton:
-			return (isSwitchClosed(swMap[kStartButton]));
-                // Esc is true if both flippers and the start button are active, or if the startbutton has been pressed
-                // for the threshold time
+			return (isSwitchClosed(swMap[code]));
+
+                // Esc is true if both flippers and the start button are active,
+                // or the exit button (default startButton) has been pressed for the threshold time
 		case kESQSequence:
                     retcode =
 			 ((osd_is_proc_pressed(kFlipperLwL) &&
 			        osd_is_proc_pressed(kFlipperLwR) &&
 			        osd_is_proc_pressed(kStartButton)) ||
 
-                                (startPressed > 0 && ( (clock() - startPressed) > startButtonHoldTime)));
+                                (exitPressed != -1 && ( (clock() - exitPressed) > exitButtonHoldTime * CLOCKS_PER_MS)));
                     
                     // if we are quitting, clear the aux bus down now as calls from anywhere else never seem
                     // to get processed
