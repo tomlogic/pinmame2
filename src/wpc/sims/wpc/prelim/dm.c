@@ -471,6 +471,8 @@ static void init_dm(void) {
   core_gameData = &dmGameData;
 #ifdef PROC_SUPPORT
   wpc_proc_solenoid_handler = dm_wpc_proc_solenoid_handler;
+  // turn flippers off immediately
+  dm_wpc_proc_solenoid_handler(28, TRUE, TRUE);
 #endif
 }
 
