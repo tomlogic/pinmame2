@@ -409,7 +409,7 @@ void procConfigureRGBLamps(void)
 
 void procConfigureFlipperSwitchRules(int enabled)
 {
-	if (yamlDoc.size() > 0) {
+	if (yamlDoc.size() > 0 && yamlDoc.FindValue(kFlippersSection)) {
 		// WPC Flippers
 		std::string numStr;
                 const YAML::Node& flippers = yamlDoc[kFlippersSection];
