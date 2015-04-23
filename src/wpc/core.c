@@ -9,7 +9,6 @@
 #include "core.h"
 #ifdef PROC_SUPPORT
 #include "p-roc/p-roc.h"
-extern int doubleAlpha;
 #endif
 /* stuff to test VPINMAME */
 #if 0

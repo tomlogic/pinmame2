@@ -93,6 +93,12 @@ int osd_is_proc_pressed(int code);
 long double strtold(const char *__restrict__ nptr, char **__restrict__ endptr);
 #endif  /* __MINGW32__, __GNUC__, __GNUC__ < 4 */
 
+extern int S11CreditPos;
+extern int S11BallPos;
+
+// whether this machine has a lower display of 16 alphanumeric positions
+extern int doubleAlpha;
+
 #ifdef __cplusplus
 }
 #endif
