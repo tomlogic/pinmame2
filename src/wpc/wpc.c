@@ -223,7 +223,9 @@ static void wpc_zc(int data) {
       procDriveCoil(solNum+4, enabled);
     } else if (solNum < 44) {
       if (core_gameData->gen & GENWPC_HASWPC95) {
-        procDriveCoil(solNum+32, enabled);
+        // solNum 40 to 43 are duplicates of 36 to 39
+        if (solNum < 40)
+          procDriveCoil(solNum+32, enabled);
       } else {
         procDriveCoil(solNum+108, enabled);
       }
@@ -257,6 +259,8 @@ static void wpc_zc(int data) {
     if (changed_data) {
       current_values = (current_values & ~mask) | (new_data << offset);
       for (i = offset; changed_data; ++i, changed_data >>= 1, new_data >>= 1) {
+        // bits 28-31 map to C37 to C40 (index 36 to 39 of wpc_proc_solenoid_handler)
+        if (i == 28) i += 8;
         if (changed_data & 1)
           wpc_proc_solenoid_handler(i, new_data & 1, FALSE);
       }
@@ -619,9 +623,9 @@ READ_HANDLER(wpc_r) {
 WRITE_HANDLER(wpc_w) {
 #ifdef PROC_SUPPORT
   if (coreGlobals.p_rocEn) {
-    // process immediate coil changes for C01 to C28
+    // process immediate coil changes for C01 to C28 and C37 to C40
     switch (offset) {
-      case WPC_SOLENOID1: proc_immediate_solenoid_change(24, data & 0x0F); break;
+      case WPC_SOLENOID1: proc_immediate_solenoid_change(24, data); break;
       case WPC_SOLENOID2: proc_immediate_solenoid_change( 0, data); break;
       case WPC_SOLENOID3: proc_immediate_solenoid_change(16, data); break;
       case WPC_SOLENOID4: proc_immediate_solenoid_change( 8, data); break;
