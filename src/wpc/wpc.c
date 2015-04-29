@@ -198,8 +198,11 @@ static void wpc_zc(int data) {
             // If game supports this "GameOver" solenoid, it's safe to disable the
             // flippers here (something that happens when the game starts up) and
             // rely on solenoid 30 telling us when to enable them.
+            // ...on WPC-95 games, SOL28 doesn't seem to fire
             if (enabled) {
               procConfigureFlipperSwitchRules(0);
+            } else if (core_gameData->gen & GEN_WPC95) {
+              procConfigureFlipperSwitchRules(1);
             }
             break;
           case 30:
