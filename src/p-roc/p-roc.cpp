@@ -106,60 +106,45 @@ PRMachineType getRomMachineType() {
 	switch (core_gameData->gen) {
 		case GEN_WPCALPHA_1:
 		case GEN_WPCALPHA_2:
-			if (pmoptions.alpha_on_dmd) {
-				return kPRMachineWPC;
-				fprintf(stderr, "ROM machine type: kPRMachineWPCAlphanumeric,\nbut using kPRMachineWPC due to alpha_on_dmd option\n");
-			} else {
-				return kPRMachineWPCAlphanumeric;
-				fprintf(stderr, "ROM machine type: kPRMachineWPCAlphanumeric\n");
-			}
-			break;
                 case GEN_DE:
                 case GEN_S4:
                 case GEN_S11A:
-                    
                 case GEN_S11:
                 case GEN_S11B2:
                 case GEN_S11C:
-
 			if (pmoptions.alpha_on_dmd) {
-				return kPRMachineWPC;
 				fprintf(stderr, "ROM machine type: kPRMachineWPCAlphanumeric,\nbut using kPRMachineWPC due to alpha_on_dmd option\n");
-			} else {
-				return kPRMachineWPCAlphanumeric;
-                                //return kPRMachineWPC;
-                                fprintf(stderr, "ROM machine type: kPRMachineWPCAlphanumeric\n");
+				return kPRMachineWPC;
 			}
-			break;
+                        fprintf(stderr, "ROM machine type: kPRMachineWPCAlphanumeric\n");
+			return kPRMachineWPCAlphanumeric;
+
                 case GEN_DEDMD32:
-                	return kPRMachineWPC;
-			fprintf(stderr, "ROM machine type: kPRMachineWPC\n");
-			break;
 		case GEN_WPCDMD:
 		case GEN_WPCFLIPTRON:
 		case GEN_WPCDCS:
 		case GEN_WPCSECURITY:
-			return kPRMachineWPC;
 			fprintf(stderr, "ROM machine type: kPRMachineWPC\n");
-			break;
+			return kPRMachineWPC;
+
 		case GEN_WPC95DCS:
 		case GEN_WPC95:
-			return kPRMachineWPC95;
 			fprintf(stderr, "ROM machine type: kPRMachineWPC95\n");
-			break;
+			return kPRMachineWPC95;
+
 		case GEN_WS:
 		case GEN_WS_1:
 		case GEN_WS_2:
-			return kPRMachineSternWhitestar;
 			fprintf(stderr, "ROM machine type: kPRMachineSternWhitestar\n");
-			break;
+			return kPRMachineSternWhitestar;
+
 		case GEN_SAM:
-			return kPRMachineSternSAM;
 			fprintf(stderr, "ROM machine type kPRMachineSternSAM\n");
-			break;
+			return kPRMachineSternSAM;
+
 		default:
-			return kPRMachineInvalid;
 			fprintf(stderr, "Unknown ROM machine type in YAML file\n");
+			return kPRMachineInvalid;
 	}
 }
 
