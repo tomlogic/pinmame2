@@ -440,6 +440,121 @@ static HC4094interface hc4094afm = {
   { qspin_0_out }
 };
 
+#ifdef PROC_SUPPORT
+  #include "p-roc/p-roc.h"
+  
+  static UINT64 saucer_queue = 0;
+  static int saucer_bit = 0;
+  int saucer_queue_empty() {
+    return saucer_bit == 0;
+  }
+  void saucer_enqueue(int bit) {
+    if (saucer_bit == 63) {
+      // saucer queue is full and we've fallen behind, drop half the bits
+      saucer_queue >>= 32;
+      saucer_bit -= 32;
+    }
+    if (bit)
+      saucer_queue |= (1UL << saucer_bit);
+    ++saucer_bit;
+  }
+  int saucer_dequeue() {
+    int retval = -1;
+    if (saucer_bit > 0) {
+      retval = saucer_queue & 1;
+      saucer_queue >>= 1;
+      --saucer_bit;
+    }
+    return retval;
+  }
+
+  void saucer_clock(void) {
+    // pulse the clock, relying on YAML's pulseTime of 1 on C37
+    procDriveCoil(36 + 32, 1);
+    procFlush();
+  }
+
+  void saucer_check_queue(int dummy) {
+    static int set_clock = 0;
+    static int saucer_data_proc = 0;
+    int saucer_data;
+
+    if (set_clock) {
+      set_clock = 0;
+      saucer_clock();
+      return;
+    }
+
+    if (saucer_queue_empty())
+      return;
+      
+    saucer_data = saucer_dequeue();
+    if (saucer_data_proc == saucer_data) {
+      saucer_clock();
+    } else {
+      // update output pin on P-ROC first
+      procDriveCoil(37 + 32, saucer_data);
+      procFlush();
+      saucer_data_proc = saucer_data;
+
+      // set clock on next pass
+      set_clock = 1;
+    }
+  }
+
+  /*
+    LEDs of saucer controlled by a serial shift register.  Game sets DATA and
+    then pulses clock HIGH for less than 1ms, about every 100ms.  Except for
+    when it's clearing the LEDs or pulsing a specific pattern and shifts with
+    sub-millisecond timing.  We use a 64-bit queue to track shift requests,
+    and a 12ms timer to shift them out at a rate the P-ROC can handle.
+    
+    Martians seem to be enabled for 0.5 to 1.1ms, disabled briefly (0.1ms),
+    enabled for about 15ms, and disabled for 133ms.  Then the pattern repeats.
+    
+    For solenoids with immediate handling, invert the `smoothed` value to allow
+    default handler to process the changes.
+  */
+  void afm_wpc_proc_solenoid_handler(int solNum, int enabled, int smoothed) {
+    static int saucer_data = 0;
+    switch (solNum) {
+      case  4:  // C05 Left Alien Low
+      case  5:  // C06 Left Alien High
+      case  7:  // C08 Right Alien High
+      case 13:  // C14 Right Alien Low
+
+      case 16:  // C17 to C23, C25 to C28 flashers
+      case 17:
+      case 18:
+      case 19:
+      case 20:
+      case 21:
+      case 22:
+      case 24:
+      case 25:
+      case 26:
+      case 27:
+      
+      case 23:  // C24 Bank Motor
+      case 38:  // C39 Strobe Light
+        smoothed = !smoothed;
+        break;
+
+      case 37:  // C38 data for saucer LEDs
+        if (!smoothed)
+          saucer_data = enabled;
+        return;
+
+      case 36:  // C37 clock for saucer LEDs
+        if (!smoothed && enabled) {
+          saucer_enqueue(saucer_data);
+        }
+        return;
+    }
+    default_wpc_proc_solenoid_handler(solNum, enabled, smoothed);
+  }
+#endif
+
 static WRITE_HANDLER(afm_wpc_w) {
   wpc_w(offset, data);
   if (offset == WPC_SOLENOID1) {
@@ -460,5 +575,12 @@ static void init_afm(void) {
   HC4094_oe_w(1, 1);
   HC4094_strobe_w(0, 1);
   HC4094_strobe_w(1, 1);
+#ifdef PROC_SUPPORT
+  wpc_proc_solenoid_handler = afm_wpc_proc_solenoid_handler;
+  if (coreGlobals.p_rocEn) {
+    // allocate a timer to shift bits out to the saucer's shift register
+    timer_pulse(TIME_IN_MSEC(12.0), 0, &saucer_check_queue);
+  }
+#endif
 }
 
