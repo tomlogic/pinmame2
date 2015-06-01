@@ -39,7 +39,8 @@ extern int verbose;
 // from wind3dfx.c
 extern struct rc_option win_d3d_opts[];
 
-
+// from ticker.c
+extern void uSleep(const unsigned long long u);
 
 //============================================================
 //	PARAMETERS
@@ -64,6 +65,7 @@ int autoframeskip;
 
 // speed throttling
 int throttle = 1;
+int fastfrms = 0;
 
 // palette lookups
 UINT8 palette_lookups_invalid;
@@ -218,10 +220,7 @@ struct rc_option video_opts[] =
 	{ "sleep", NULL, rc_bool, &allow_sleep, "1", 0, 0, NULL, "allow " APPNAME " to give back time to the system when it's not needed" },
 	{ "rdtsc", NULL, rc_bool, &win_force_rdtsc, "0", 0, 0, NULL, "prefer RDTSC over QueryPerformanceCounter for timing" },
 	{ "high_priority", NULL, rc_bool, &win_high_priority, "0", 0, 0, NULL, "increase thread priority" },
-
 	{ NULL, NULL, rc_link, win_d3d_opts, NULL, 0, 0, NULL, NULL },
-
-
 	{ NULL,	NULL, rc_end, NULL, NULL, 0, 0,	NULL, NULL }
 };
 
@@ -725,7 +724,10 @@ static void throttle_speed(void)
 		while (curr - target < 0)
 		{
 #ifdef VPINMAME
-			Sleep((target-curr)/ticks_per_sleep_msec);
+			//if((long long)((target - curr)/(ticks_per_sleep_msec*1.1))-1 > 0) // pessimistic estimate of stuff below
+			//	uSleep((unsigned long long)((target - curr)*1000/(ticks_per_sleep_msec*1.1))-1);
+			
+			uSleep((target-curr)*1000/ticks_per_sleep_msec);
 #else
 			// if we have enough time to sleep, do it
 			// ...but not if we're autoframeskipping and we're behind
@@ -735,7 +737,7 @@ static void throttle_speed(void)
 				cycles_t next;
 
 				// keep track of how long we actually slept
-				Sleep(1);
+				uSleep(100); //1000?
 				next = osd_cycles();
 				ticks_per_sleep_msec = (ticks_per_sleep_msec * 0.90) + ((double)(next - curr) * 0.10);
 				curr = next;
@@ -747,6 +749,16 @@ static void throttle_speed(void)
 				curr = osd_cycles();
 			}
 		}
+	}
+	else
+	{
+		// We're behind schedule!  Something must have taken longer than
+		// it should have (e.g., a CPU emulator time slice must have gone
+		// on too long).  We don't have a time machine, so we can't go back
+		// and sync this frame to a time in the past.  But we can fix things 
+		// up for future frames, by refiguring the time projection base 
+		// time to conform to the new reality.
+		this_frame_base += curr - target;
 	}
 
 	// idle time done
@@ -891,6 +903,12 @@ static void render_frame(struct mame_bitmap *bitmap, const struct rectangle *bou
 {
 	cycles_t curr;
 
+	if (fastfrms >= 0)
+		{
+		if(fastfrms-- == 0) throttle = 1;
+		else throttle = 0;
+		}		
+
 	// if we're throttling, synchronize
 	if (throttle || game_is_paused)
 		throttle_speed();
@@ -919,7 +937,7 @@ static void render_frame(struct mame_bitmap *bitmap, const struct rectangle *bou
 
 	// update the bitmap we're drawing
 	profiler_mark(PROFILER_BLIT);
-	win_update_video_window(bitmap, bounds, vector_dirty_pixels);
+		win_update_video_window(bitmap, bounds, vector_dirty_pixels);
 	profiler_mark(PROFILER_END);
 
 	// if we're throttling and autoframeskip is on, adjust

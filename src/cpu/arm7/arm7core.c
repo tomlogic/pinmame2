@@ -164,12 +164,14 @@ INLINE data32_t arm7_cpu_read32( int addr )
 
 INLINE data16_t arm7_cpu_read16( int addr )
 {
-	if(addr&3)
+#if ARM7_DEBUG_CORE
+	if (addr & 3)
 	{
 		int val = addr & 3;
 		if(val != 2)
 			LOG(("%08x: MISALIGNED half word read @ %08x:\n",R15,addr));
 	}
+#endif
 
 	//Handle through normal 32 bit handler ( for 32 bit cpu )
 	return cpu_readmem32ledw_word(addr);
@@ -185,26 +187,25 @@ INLINE data8_t arm7_cpu_read8( offs_t addr )
  * helper funcs
  ***************/
 
-/* Set NZCV flags for ADDS / SUBS */
-#define HandleALUAddFlags(rd, rn, op2) \
-  if (insn & INSN_S) \
-    SET_CPSR( \
-      ((GET_CPSR &~ (N_MASK | Z_MASK | V_MASK | C_MASK)) \
-      | (((!SIGN_BITS_DIFFER(rn, op2)) && SIGN_BITS_DIFFER(rn, rd)) \
-          << V_BIT) \
-      | (((~(rn)) < (op2)) << C_BIT) \
-      | HandleALUNZFlags(rd))); \
-  R15 += 4;
+#define IsNeg(i) ((i) >> 31)
+#define IsPos(i) ((~(i)) >> 31)
 
-#define HandleALUSubFlags(rd, rn, op2) \
-  if (insn & INSN_S) \
-    SET_CPSR( \
-      ((GET_CPSR &~ (N_MASK | Z_MASK | V_MASK | C_MASK)) \
-      | ((SIGN_BITS_DIFFER(rn, op2) && SIGN_BITS_DIFFER(rn, rd)) \
-          << V_BIT) \
-      | (((op2) <= (rn)) << C_BIT) \
-      | HandleALUNZFlags(rd))); \
-  R15 += 4;
+/* Set NZCV flags for ADDS / SUBS */
+#define HandleALUAddFlags(rd, rn, op2)                                                \
+	if (insn & INSN_S)                                                                  \
+	SET_CPSR(((GET_CPSR & ~(N_MASK | Z_MASK | V_MASK | C_MASK))                       \
+				| (((!SIGN_BITS_DIFFER(rn, op2)) && SIGN_BITS_DIFFER(rn, rd)) << V_BIT) \
+				| (((IsNeg(rn) & IsNeg(op2)) | (IsNeg(rn) & IsPos(rd)) | (IsNeg(op2) & IsPos(rd))) ? C_MASK : 0) \
+				| HandleALUNZFlags(rd)));                                               \
+	R15 += 4;
+
+#define HandleALUSubFlags(rd, rn, op2)                                                                         \
+	if (insn & INSN_S)                                                                                           \
+	SET_CPSR(((GET_CPSR & ~(N_MASK | Z_MASK | V_MASK | C_MASK))                                                \
+				| ((SIGN_BITS_DIFFER(rn, op2) && SIGN_BITS_DIFFER(rn, rd)) << V_BIT)                             \
+				| (((IsNeg(rn) & IsPos(op2)) | (IsNeg(rn) & IsPos(rd)) | (IsPos(op2) & IsPos(rd))) ? C_MASK : 0) \
+				| HandleALUNZFlags(rd)));                                                                        \
+	R15 += 4;
 
 /* Set NZC flags for logical operations. */
 
@@ -237,6 +238,9 @@ static const char* GetModeText( int cpsr )
 
 #define GetRegister(rIndex) ARMREG(sRegisterTable[GET_MODE][rIndex])
 #define SetRegister(rIndex,value) ARMREG(sRegisterTable[GET_MODE][rIndex]) = value
+
+#define GetModeRegister(mode, rIndex)        ARMREG(sRegisterTable[mode][rIndex])
+#define SetModeRegister(mode, rIndex, value) ARMREG(sRegisterTable[mode][rIndex]) = value
 
 //I could prob. convert to macro, but Switchmode shouldn't occur that often in emulated code..
 INLINE void SwitchMode (int cpsr_mode_val)
@@ -271,9 +275,8 @@ static data32_t decodeShift( data32_t insn, data32_t *pCarry)
 	data32_t t	= (insn & INSN_OP2_SHIFT_TYPE) >> INSN_OP2_SHIFT_TYPE_SHIFT;
 
 	if ((insn & INSN_OP2_RM)==0xf) {
-		/* If hardwired shift, then PC is 8 bytes ahead, else if register shift
-		is used, then 12 bytes - TODO?? */
-		rm+=8;
+		// "If a register is used to specify the shift amount the PC will be 12 bytes ahead." (instead of 8)
+		rm += t & 1 ? 12 : 8;
 	}
 
 	/* All shift types ending in 1 are Rk, not #k */
@@ -358,40 +361,79 @@ static data32_t decodeShift( data32_t insn, data32_t *pCarry)
 	case 3:						/* ROR and RRX */
 		if (k)
 		{
-			while (k > 32) k -= 32;
-			if (pCarry) *pCarry = rm & SIGN_BIT;
+			while (k > 32)
+				k -= 32;
+			if (pCarry)
+				*pCarry = rm & (1 << (k - 1));
 			return ROR(rm, k);
 		}
 		else
 		{
-			if (pCarry) *pCarry = (rm & 1);
+			/* RRX */
+			if (pCarry)
+				*pCarry = (rm & 1);
 			return LSR(rm, 1) | ((GET_CPSR & C_MASK) << 2);
 		}
 		break;
 	}
 
-	LOG(("%08x: Decodeshift error\n",R15));
+#if ARM7_DEBUG_CORE
+	LOG(("%08x: Decodeshift error\n", R15));
+#endif
 	return 0;
 } /* decodeShift */
 
 
 static int loadInc ( data32_t pat, data32_t rbv, data32_t s)
 {
-	int i,result;
+	int i, result;
+	UINT32 data;
 
 	result = 0;
-	for( i=0; i<16; i++ )
+	rbv &= ~3;
+	for (i = 0; i < 16; i++)
 	{
-		if( (pat>>i)&1 )
+		if ((pat >> i) & 1)
 		{
-			if (i==15) {
-				if (s) /* Pull full contents from stack */
-					SET_REGISTER( 15, READ32(rbv+=4) );
-				else /* Pull only address, preserve mode & status flags */
-					SET_REGISTER( 15, READ32(rbv+=4) );
-			} else
-				SET_REGISTER( i, READ32(rbv+=4) );
+			if (ARM7.pendingAbtD == 0) {
+				data = READ32(rbv += 4);
+				if (i == 15) {
+					//if (s) /* Pull full contents from stack */
+						SET_REGISTER( 15, data );
+					//else /* Pull only address, preserve mode & status flags */
+					//	SET_REGISTER( 15, data );
+				} else
+					SET_REGISTER( i, data );
+			}
 
+			result++;
+		}
+	}
+	return result;
+}
+
+static int loadIncMode(data32_t pat, data32_t rbv, data32_t s, int mode)
+{
+	int i, result;
+	UINT32 data;
+
+	result = 0;
+	rbv &= ~3;
+	for (i = 0; i < 16; i++)
+	{
+		if ((pat >> i) & 1)
+		{
+			if (ARM7.pendingAbtD == 0) // "Overwriting of registers stops when the abort happens."
+			{
+			data = READ32(rbv += 4);
+			if (i == 15) {
+				//if (s) /* Pull full contents from stack */
+					SET_MODE_REGISTER(mode, 15, data);
+				//else /* Pull only address, preserve mode & status flags */
+				//	SET_MODE_REGISTER(mode, 15, data);
+			} else
+				SET_MODE_REGISTER(mode, i, data);
+			}
 			result++;
 		}
 	}
@@ -400,21 +442,55 @@ static int loadInc ( data32_t pat, data32_t rbv, data32_t s)
 
 static int loadDec( data32_t pat, data32_t rbv, data32_t s)
 {
-	int i,result;
+	int i, result;
+	UINT32 data;
 
 	result = 0;
-	for( i=15; i>=0; i-- )
+	rbv &= ~3;
+	for (i = 15; i >= 0; i--)
 	{
-		if( (pat>>i)&1 )
+		if ((pat >> i) & 1)
 		{
-			if (i==15) {
-				if (s) /* Pull full contents from stack */
-					SET_REGISTER( 15, READ32(rbv-=4) );
-				else /* Pull only address, preserve mode & status flags */
-					SET_REGISTER( 15, READ32(rbv-=4) );
+			if (ARM7.pendingAbtD == 0) {
+				data = READ32(rbv -= 4);
+				if (i == 15) {
+					//if (s) /* Pull full contents from stack */
+						SET_REGISTER( 15, data );
+					//else /* Pull only address, preserve mode & status flags */
+					//	SET_REGISTER( 15, data );
+				}
+				else
+					SET_REGISTER( i, data );
+			}
+			result++;
+		}
+	}
+	return result;
+}
+
+static int loadDecMode(data32_t pat, data32_t rbv, data32_t s, int mode)
+{
+	int i, result;
+	UINT32 data;
+
+	result = 0;
+	rbv &= ~3;
+	for (i = 15; i >= 0; i--)
+	{
+		if ((pat >> i) & 1)
+		{
+			if (ARM7.pendingAbtD == 0) // "Overwriting of registers stops when the abort happens."
+			{
+			data = READ32(rbv -= 4);
+			if (i == 15) {
+				//if (s) /* Pull full contents from stack */
+					SET_MODE_REGISTER(mode, 15, data);
+				//else /* Pull only address, preserve mode & status flags */
+				//	SET_MODE_REGISTER(mode, 15, data);
 			}
 			else
-				SET_REGISTER( i, READ32(rbv -=4) );
+				SET_MODE_REGISTER(mode, i, data);
+			}
 			result++;
 		}
 	}
@@ -441,20 +517,73 @@ static int storeInc( data32_t pat, data32_t rbv)
 	return result;
 } /* storeInc */
 
-static int storeDec( data32_t pat, data32_t rbv)
+static int storeIncMode(data32_t pat, data32_t rbv, int mode)
 {
-	int i,result;
+	int i, result;
 
 	result = 0;
-	for( i=15; i>=0; i-- )
+	for (i = 0; i < 16; i++)
 	{
-		if( (pat>>i)&1 )
+		if ((pat >> i) & 1)
 		{
-			#if ARM7_DEBUG_CORE
-				if(i==15) /* R15 is plus 12 from address of STM */
-					LOG(("%08x: StoreDec on R15\n",R15));
-			#endif
-			WRITE32( rbv -= 4, GET_REGISTER(i) );
+#if ARM7_DEBUG_CORE
+			if (i == 15) /* R15 is plus 12 from address of STM */
+				LOG(("%08x: StoreInc on R15\n", R15));
+#endif
+			WRITE32(rbv += 4, GET_MODE_REGISTER(mode, i));
+			result++;
+		}
+	}
+	return result;
+} /* storeInc */
+
+// classic CV: 3005aa0 does the DMA thing
+static int storeDec( data32_t pat, data32_t rbv)
+{
+        int i, result = 0, cnt;
+
+	// pre-count the # of registers doing DMA
+	for (i = 15; i >= 0; i--)
+	{
+		if ((pat >> i) & 1)
+		{
+			result++;
+
+			// starting address
+			rbv -= 4;
+		}
+	}
+
+	cnt = 0;
+	for (i = 0; i <= 15; i++)
+	{
+		if ((pat >> i) & 1)
+		{
+#if ARM7_DEBUG_CORE
+			if (i == 15) /* R15 is plus 12 from address of STM */
+				LOG(("%08x: StoreDec on R15\n", R15));
+#endif
+			WRITE32(rbv + (cnt * 4), GET_REGISTER(i));
+			cnt++;
+		}
+	}
+	return result;
+} /* storeDec */
+
+static int storeDecMode(data32_t pat, data32_t rbv, int mode)
+{
+	int i, result;
+
+	result = 0;
+	for (i = 15; i >= 0; i--)
+	{
+		if ((pat >> i) & 1)
+		{
+#if ARM7_DEBUG_CORE
+			if (i == 15) /* R15 is plus 12 from address of STM */
+				LOG(("%08x: StoreDec on R15\n", R15));
+#endif
+			WRITE32(rbv -= 4, GET_MODE_REGISTER(mode, i));
 			result++;
 		}
 	}
@@ -517,8 +646,10 @@ static void arm7_check_irq_state(void)
 	//Data Abort
 	if (ARM7.pendingAbtD) {
 		SwitchMode(eARM7_MODE_ABT);				/* Set ABT mode so PC is saved to correct R14 bank */
-		SET_REGISTER( 14, pc );					/* save PC to R14 */
+		SET_REGISTER( 14, pc - 8 + 8);			/* save PC to R14 */
 		SET_REGISTER( SPSR, cpsr );				/* Save current CPSR */
+		SET_CPSR(GET_CPSR | I_MASK);            /* Mask IRQ */
+		SET_CPSR(GET_CPSR & ~T_MASK);
 		R15 = 0x10;								/* IRQ Vector address */
 		ARM7.pendingAbtD = 0;
 		return;
@@ -527,9 +658,10 @@ static void arm7_check_irq_state(void)
 	//FIRQ
 	if (ARM7.pendingFiq && (cpsr & F_MASK)==0) {
 		SwitchMode(eARM7_MODE_FIQ);				/* Set FIQ mode so PC is saved to correct R14 bank */
-		SET_REGISTER( 14, pc );					/* save PC to R14 */
+		SET_REGISTER( 14, pc - 4 + 4);			/* save PC to R14 */
 		SET_REGISTER( SPSR, cpsr );				/* Save current CPSR */
 		SET_CPSR(GET_CPSR | I_MASK | F_MASK);	/* Mask both IRQ & FIRQ*/
+		SET_CPSR(GET_CPSR & ~T_MASK);
 		R15 = 0x1c;								/* IRQ Vector address */
 		return;
 	}
@@ -537,9 +669,10 @@ static void arm7_check_irq_state(void)
 	//IRQ
 	if (ARM7.pendingIrq && (cpsr & I_MASK)==0) {
 		SwitchMode(eARM7_MODE_IRQ);				/* Set IRQ mode so PC is saved to correct R14 bank */
-		SET_REGISTER( 14, pc );					/* save PC to R14 */
+		SET_REGISTER( 14, pc - 4 + 4);			/* save PC to R14 */
 		SET_REGISTER( SPSR, cpsr );				/* Save current CPSR */
 		SET_CPSR(GET_CPSR | I_MASK);			/* Mask IRQ */
+		SET_CPSR(GET_CPSR & ~T_MASK);
 		R15 = 0x18;								/* IRQ Vector address */
 		return;
 	}
@@ -547,8 +680,10 @@ static void arm7_check_irq_state(void)
 	//Prefetch Abort
 	if (ARM7.pendingAbtP) {
 		SwitchMode(eARM7_MODE_ABT);				/* Set ABT mode so PC is saved to correct R14 bank */
-		SET_REGISTER( 14, pc );					/* save PC to R14 */
+		SET_REGISTER( 14, pc - 4 + 4);			/* save PC to R14 */
 		SET_REGISTER( SPSR, cpsr );				/* Save current CPSR */
+		SET_CPSR(GET_CPSR | I_MASK);            /* Mask IRQ */
+		SET_CPSR(GET_CPSR & ~T_MASK);
 		R15 = 0x0c;								/* IRQ Vector address */
 		ARM7.pendingAbtP = 0;
 		return;
@@ -557,8 +692,17 @@ static void arm7_check_irq_state(void)
 	//Undefined instruction
 	if (ARM7.pendingUnd) {
 		SwitchMode(eARM7_MODE_UND);				/* Set UND mode so PC is saved to correct R14 bank */
-		SET_REGISTER( 14, pc );					/* save PC to R14 */
+		//if (T_IS_SET(GET_CPSR))
+		//{
+			//SET_REGISTER( 14, pc - 4 + 2);		/* save PC to R14 */
+		//}
+		//else
+		{
+			SET_REGISTER( 14, pc - 4 + 4 - 4);	/* save PC to R14 */
+		}
 		SET_REGISTER( SPSR, cpsr );				/* Save current CPSR */
+		SET_CPSR(GET_CPSR | I_MASK);            /* Mask IRQ */
+		SET_CPSR(GET_CPSR & ~T_MASK);
 		R15 = 0x04;								/* IRQ Vector address */
 		ARM7.pendingUnd = 0;
 		return;
@@ -567,8 +711,17 @@ static void arm7_check_irq_state(void)
 	//Software Interrupt
 	if (ARM7.pendingSwi) {
 		SwitchMode(eARM7_MODE_SVC);				/* Set SVC mode so PC is saved to correct R14 bank */
-		SET_REGISTER( 14, pc );					/* save PC to R14 */
+		//if (T_IS_SET(GET_CPSR))
+		//{
+			//SET_REGISTER( 14, pc - 4 + 2);		/* save PC to R14 */
+		//}
+		//else
+		{
+			SET_REGISTER( 14, pc - 4 + 4);       /* save PC to R14 */
+		}	
 		SET_REGISTER( SPSR, cpsr );				/* Save current CPSR */
+		SET_CPSR(GET_CPSR | I_MASK);            /* Mask IRQ */
+		SET_CPSR(GET_CPSR & ~T_MASK);           /* Go to ARM mode */
 		R15 = 0x08;								/* IRQ Vector address */
 		ARM7.pendingSwi = 0;
 		return;
@@ -613,8 +766,10 @@ static void HandleCoProcDO(data32_t insn)
 	// This instruction simply instructs the co-processor to do something, no data is returned to ARM7 core
 	if(arm7_coproc_do_callback)
 		arm7_coproc_do_callback(insn,0,0);		//simply pass entire opcode to callback - since data format is actually dependent on co-proc implementation
+#if ARM7_DEBUG_CORE
 	else
 		LOG(("%08x: Co-Processor Data Operation executed, but no callback defined!\n",R15));
+#endif
 }
 
 //Co-Processor Register Transfer - To/From Arm to Co-Proc
@@ -631,16 +786,20 @@ static void HandleCoProcRT(data32_t insn)
 				data32_t res = arm7_coproc_rt_r_callback(insn,0);	//RT Read handler must parse opcode & return appropriate result
 				SET_REGISTER((insn>>12)&0xf,res);
 			}
+#if ARM7_DEBUG_CORE
 			else
 				LOG(("%08x: Co-Processor Register Transfer executed, but no RT Read callback defined!\n",R15));
+#endif
 		}
 	// Store (MCR) data from ARM7 to Co-Proc register
 	else
 		{
 		if(arm7_coproc_rt_r_callback)
 			arm7_coproc_rt_w_callback(insn,GET_REGISTER((insn>>12)&0xf),0);
+#if ARM7_DEBUG_CORE
 		else
 			LOG(("%08x: Co-Processor Register Transfer executed, but no RT Write callback defined!\n",R15));
+#endif
 		}
 }
 
@@ -690,17 +849,23 @@ static void HandleCoProcDT(data32_t insn)
 		{
 			if(arm7_coproc_dt_r_callback)
 				arm7_coproc_dt_r_callback(insn,prn,read32);
+#if ARM7_DEBUG_CORE
 			else
 				LOG(("%08x: Co-Processer Data Transfer executed, but no READ callback defined!\n",R15));
+#endif
 		}
 	// Store (STC) data from Co-Proc to ARM7 memory
 	else
 		{
 			if(arm7_coproc_dt_w_callback)
 				arm7_coproc_dt_w_callback(insn,prn,write32);
+#if ARM7_DEBUG_CORE
 			else
 				LOG(("%08x: Co-Processer Data Transfer executed, but no WRITE callback defined!\n",R15));
+#endif
 		}
+		
+	if (ARM7.pendingUnd != 0) return;
 
 	//If writeback not used - ensure the original value of RN is restored in case co-proc callback changed value
 	if((insn & 0x200000)==0)
@@ -730,7 +895,7 @@ static void HandleBranch(  data32_t insn )
 
 static void HandleMemSingle( data32_t insn )
 {
-	data32_t rn, rnv, off, rd;
+	data32_t rn, rnv, off, rd, rnv_old = 0;
 
 	/* Fetch the offset */
 	if (insn & INSN_I)
@@ -761,6 +926,7 @@ static void HandleMemSingle( data32_t insn )
 
 		if (insn & INSN_SDT_W)
 		{
+		    rnv_old = GET_REGISTER(rn);
 			SET_REGISTER(rn,rnv);
 
 	//check writeback???
@@ -790,20 +956,27 @@ static void HandleMemSingle( data32_t insn )
 		/* Load */
 		if (insn & INSN_SDT_B)
 		{
-			SET_REGISTER(rd,(data32_t) READ8(rnv));
+			data32_t data = READ8(rnv);
+			if (ARM7.pendingAbtD == 0)
+			{
+				SET_REGISTER(rd, data);
+			}
 		}
 		else
 		{
+			data32_t data = READ32(rnv);
+			if (ARM7.pendingAbtD == 0)
+			{
 			if (rd == eR15)
 			{
-				R15 = READ32(rnv);
-				R15 -= 4;
+				R15 = data - 4;
 				//LDR, PC takes 2S + 2N + 1I (5 total cycles)
 				ARM7_ICOUNT -= 2;
 			}
 			else
 			{
-				SET_REGISTER(rd,READ32(rnv));
+				SET_REGISTER(rd,data);
+			}
 			}
 		}
 	}
@@ -833,6 +1006,15 @@ static void HandleMemSingle( data32_t insn )
 		ARM7_ICOUNT += 1;
 	}
 
+	/*if (ARM7.pendingAbtD == 0) // MAME has this enabled, but no boot-up on some SAMs due to this
+	{
+		if ((insn & INSN_SDT_P) && (insn & INSN_SDT_W))
+		{
+			SET_REGISTER(rn, rnv_old);
+		}
+	}
+	else
+	{*/
 	/* Do post-indexing writeback */
 	if (!(insn & INSN_SDT_P)/* && (insn&INSN_SDT_W)*/)
 	{
@@ -846,8 +1028,10 @@ static void HandleMemSingle( data32_t insn )
 			}
 			else {
 
-				if ((insn&INSN_SDT_W)!=0)
+			#if ARM7_DEBUG_CORE
+				if ((insn&INSN_SDT_W) != 0)
 					LOG(("%08x:  RegisterWritebackIncrement %d %d %d\n",R15,(insn & INSN_SDT_P)!=0,(insn&INSN_SDT_W)!=0,(insn & INSN_SDT_U)!=0));
+			#endif
 
 				SET_REGISTER(rn,(rnv + off));
 			}
@@ -862,11 +1046,14 @@ static void HandleMemSingle( data32_t insn )
 			else {
 				SET_REGISTER(rn,(rnv - off));
 
-				if ((insn&INSN_SDT_W)!=0)
-				LOG(("%08x:  RegisterWritebackDecrement %d %d %d\n",R15,(insn & INSN_SDT_P)!=0,(insn&INSN_SDT_W)!=0,(insn & INSN_SDT_U)!=0));
+			#if ARM7_DEBUG_CORE
+				if ((insn&INSN_SDT_W) != 0)
+					LOG(("%08x:  RegisterWritebackDecrement %d %d %d\n",R15,(insn & INSN_SDT_P)!=0,(insn&INSN_SDT_W)!=0,(insn & INSN_SDT_U)!=0));
+			#endif
 			}
 		}
 	}
+	//}
 
 //	ARM7_CHECKIRQ
 
@@ -874,7 +1061,7 @@ static void HandleMemSingle( data32_t insn )
 
 static void HandleHalfWordDT(data32_t insn)
 {
-	data32_t rn, rnv, off, rd;
+	data32_t rn, rnv, off, rd, rnv_old = 0;
 
 	//Immediate or Register Offset?
 	if(insn & 0x400000) {				//Bit 22 - 1 = immediate, 0 = register
@@ -903,6 +1090,7 @@ static void HandleHalfWordDT(data32_t insn)
 
 		if (insn & INSN_SDT_W)
 		{
+			rnv_old = GET_REGISTER(rn);
 			SET_REGISTER(rn,rnv);
 
 		//check writeback???
@@ -952,6 +1140,8 @@ static void HandleHalfWordDT(data32_t insn)
 				newval = (data32_t)(signbyte<<8)|databyte;
 			}
 
+			if (ARM7.pendingAbtD == 0)
+			{
 			//PC?
 			if(rd == eR15)
 			{
@@ -965,32 +1155,79 @@ static void HandleHalfWordDT(data32_t insn)
 				SET_REGISTER(rd,newval);
 				R15 += 4;
 			}
+			
+			}
+			else
+			{
+				R15 += 4;
+			}
 		}
 		//Unsigned Half Word
 		else
 		{
+			data32_t newval = READ16(rnv);
+			
+			if (ARM7.pendingAbtD == 0)
+			{
 			if (rd == eR15)
 			{
-				R15 = READ16(rnv) + 8;
+				R15 = newval + 8;
+				// extra cycles for LDR(H,SH,SB) PC (5 total cycles)
+				ARM7_ICOUNT -= 2;
 			}
 			else
 			{
-				SET_REGISTER(rd,READ16(rnv));
+				SET_REGISTER(rd,newval);
+				R15 += 4;
+			}
+			
+			}
+			else
+			{
 				R15 += 4;
 			}
 		}
+	}
+	/* Store or ARMv5+ dword insns */
+	else
+	{
+		if ((insn & 0x60) == 0x40)  // LDRD
+	{
+		SET_REGISTER(rd, READ32(rnv));
+		SET_REGISTER(rd+1, READ32(rnv+4));
+				R15 += 4;
+	}
+		else if ((insn & 0x60) == 0x60) // STRD
+	{
+		WRITE32(rnv, GET_REGISTER(rd));
+		WRITE32(rnv+4, GET_REGISTER(rd+1));
+				R15 += 4;
 	}
 	/* Store */
 	else
 	{
 		//WRITE16(rnv, rd == eR15 ? R15 + 8 : GET_REGISTER(rd));
 		WRITE16(rnv, rd == eR15 ? R15 + 8 + 4 : GET_REGISTER(rd)); //manual says STR RD=PC, +12 of address
+
+// if R15 is not increased then e.g. "STRH R10, [R15,#$10]" will be executed over and over again
+#if 0
 		if(rn != eR15)
+#endif
 			R15 += 4;
 		//STRH takes 2 cycles, so we add + 1
 		ARM7_ICOUNT += 1;
 	}
+	}
 
+	if (ARM7.pendingAbtD != 0)
+	{
+		if ((insn & INSN_SDT_P) && (insn & INSN_SDT_W))
+		{
+			SET_REGISTER(rn, rnv_old);
+		}
+	}
+	else
+	{
 	//SJE: No idea if this writeback code works or makes sense here..
 
 	/* Do post-indexing writeback */
@@ -1006,8 +1243,10 @@ static void HandleHalfWordDT(data32_t insn)
 			}
 			else {
 
-				if ((insn&INSN_SDT_W)!=0)
+			#if ARM7_DEBUG_CORE
+				if ((insn&INSN_SDT_W) != 0)
 					LOG(("%08x:  RegisterWritebackIncrement %d %d %d\n",R15,(insn & INSN_SDT_P)!=0,(insn&INSN_SDT_W)!=0,(insn & INSN_SDT_U)!=0));
+			#endif
 
 				SET_REGISTER(rn,(rnv + off));
 			}
@@ -1022,10 +1261,14 @@ static void HandleHalfWordDT(data32_t insn)
 			else {
 				SET_REGISTER(rn,(rnv - off));
 
-				if ((insn&INSN_SDT_W)!=0)
+			#if ARM7_DEBUG_CORE
+				if ((insn&INSN_SDT_W) != 0)
 					LOG(("%08x:  RegisterWritebackDecrement %d %d %d\n",R15,(insn & INSN_SDT_P)!=0,(insn&INSN_SDT_W)!=0,(insn & INSN_SDT_U)!=0));
+			#endif
 			}
 		}
+	}
+	
 	}
 }
 
@@ -1035,13 +1278,15 @@ static void HandleSwap(data32_t insn)
 	//Process: Read original data from address pointed by Rn then store data from address
 	//         pointed by Rm to Rn address, and store original data from Rn to Rd.
 	// Todo: I have no valid source to verify this function works.. so it needs to be tested
-	data32_t rn,rnv,rm,rmv,rd;
+	data32_t rn,rm,rd,tmp;
 
-	LOG(("%08x: HandleSwap called!\n",R15));
+#if ARM7_DEBUG_CORE
+	LOG(("%08x: HandleSwap called!\n", R15));
+#endif
 
 	rn = GET_REGISTER((insn>>16)&0xf);
 	rm = GET_REGISTER(insn&0xf);
-	rd = GET_REGISTER((insn>>12)&0xf);
+	rd = (insn >> 12) & 0xf;//GET_REGISTER((insn>>12)&0xf);
 
 	#if ARM7_DEBUG_CORE
 	if(rn == 15 || rm == 15 || rd == 15)
@@ -1051,18 +1296,16 @@ static void HandleSwap(data32_t insn)
 	//Byte Swap?
 	if(insn & 0x400000)
 	{
-		rnv = READ8(rn) & 0xff;	//mask to 8 bit just in case
-		rmv = READ8(rm) & 0xff;
+		tmp = READ8(rn);
+		WRITE8(rn, rm);
+		SET_REGISTER(rd, tmp);
 	}
 	else
 	{
-		rnv = READ32(rn);
-		rmv = READ32(rm);
+		tmp = READ32(rn);
+		WRITE32(rn, rm);
+		SET_REGISTER(rd, tmp);
 	}
-
-	//Do the swap
-	SET_REGISTER(rn,rmv);
-	SET_REGISTER(rd,rnv);
 
 	R15 += 4;
 	//Instruction takes 1S+2N+1I cycles - so we subtract one more..
@@ -1072,13 +1315,16 @@ static void HandleSwap(data32_t insn)
 static void HandlePSRTransfer( data32_t insn )
 {
 	int reg = (insn & 0x400000)?SPSR:eCPSR;	//Either CPSR or SPSR
-	int val = 0;
+	data32_t newval, val = 0;
 	int oldmode = GET_CPSR & MODE_FLAG;
 
+	// get old value of CPSR/SPSR
+	newval = GET_REGISTER(reg);
+	
 	//MSR ( bit 21 set ) - Copy value to CPSR/SPSR
 	if( (insn & 0x00200000) ) {
 
-		//MSR (register transfer)?
+		/*//MSR (register transfer)?
 		if(insn & 0x10000)
 		{
 			val = GET_REGISTER(insn & 0x0f);
@@ -1089,7 +1335,7 @@ static void HandlePSRTransfer( data32_t insn )
 		}
 		//MSR (register or immediate transfer - flag bits only)
 		else
-		{
+		{*/
 			//Immediate Value?
 			if(insn & INSN_I) {
 				//Value can be specified for a Right Rotate, 2x the value specified.
@@ -1103,18 +1349,69 @@ static void HandlePSRTransfer( data32_t insn )
 			else {
 				val = GET_REGISTER(insn & 0x0f);
 			}
+			
+			// apply field code bits
+			if (reg == eCPSR)
+			{
+			if (oldmode != eARM7_MODE_USER)
+			{
+				if (insn & 0x00010000)
+				{
+					newval = (newval & 0xffffff00) | (val & 0x000000ff);
+				}
+				if (insn & 0x00020000)
+				{
+					newval = (newval & 0xffff00ff) | (val & 0x0000ff00);
+				}
+				if (insn & 0x00040000)
+				{
+					newval = (newval & 0xff00ffff) | (val & 0x00ff0000);
+				}
+			}
+			// status flags can be modified regardless of mode
+			if (insn & 0x00080000)
+			{
+				// TODO for non ARMv5E mask should be 0xf0000000 (ie mask Q bit)
+				newval = (newval & 0x00ffffff) | (val & 0xf8000000);
+			}
+			}
+			else    // SPSR has stricter requirements
+			{
+			if (((GET_CPSR & 0x1f) > 0x10) && ((GET_CPSR & 0x1f) < 0x1f))
+			{
+				if (insn & 0x00010000)
+				{
+					newval = (newval & 0xffffff00) | (val & 0xff);
+				}
+				if (insn & 0x00020000)
+				{
+					newval = (newval & 0xffff00ff) | (val & 0xff00);
+				}
+				if (insn & 0x00040000)
+				{
+					newval = (newval & 0xff00ffff) | (val & 0xff0000);
+				}
+				if (insn & 0x00080000)
+				{
+					// TODO for non ARMv5E mask should be 0xf0000000 (ie mask Q bit)
+					newval = (newval & 0x00ffffff) | (val & 0xf8000000);
+				}
+			}
+			}
+			
+#if 0
+			// force valid mode
+			newval |= 0x10;
+#endif
+			// Update the Register
+			if (reg == eCPSR)
+				SET_CPSR(newval);
+			else
+				SET_REGISTER(reg, newval);
 
-			//This instruction is flag bits only, so keep only top 4 bits!
-			val = (val & 0xF0000000);
-		}
-
-		//Update the Register
-		SET_REGISTER(reg,val);
-
-		//Switch to new mode if changed
-		if( (val & MODE_FLAG) != oldmode)
-			SwitchMode(GET_MODE);
-
+			// Switch to new mode if changed
+			if ((newval & MODE_FLAG) != oldmode)
+				SwitchMode(GET_MODE);
 	}
 	//MRS ( bit 21 clear ) - Copy CPSR or SPSR to specified Register
 	else {
@@ -1126,6 +1423,11 @@ static void HandleALU( data32_t insn )
 {
 	data32_t op2, sc=0, rd, rn, opcode;
 	data32_t by, rdn;
+
+	// Normal Data Processing : 1S
+	// Data Processing with register specified shift : 1S + 1I
+	// Data Processing with PC written : 2S + 1N
+	// Data Processing with register specified shift and PC written : 2S + 1N + 1I
 
 	opcode = (insn & INSN_OPCODE) >> INSN_OPCODE_SHIFT;
 
@@ -1154,12 +1456,17 @@ static void HandleALU( data32_t insn )
 	/* Op2 = Register Value */
 	else
 	{
-		op2 = decodeShift(insn, (insn & INSN_S && (opcode & 4) == 4)? &sc : NULL);
+		op2 = decodeShift(insn, (insn & INSN_S) ? &sc : NULL);
 
-		if (!(insn & INSN_S && (opcode & 4) == 4))
-			sc=0;
+		// LD TODO sc will always be 0 if this applies
+		if (!(insn & INSN_S))
+			sc = 0;
+
+		// extra cycle (register specified shift)
+		ARM7_ICOUNT -= 1;
 	}
 
+	// LD TODO this comment is wrong
 	/* Calculate Rn to account for pipelining */
 	if ((opcode & 0xd) != 0xd) /* No Rn in MOV */
 	{
@@ -1217,7 +1524,7 @@ static void HandleALU( data32_t insn )
 		HandleALULogicalFlags(rd, sc);
 		break;
 	case OPCODE_BIC:
-		rd = rn &~ op2;
+		rd = rn & ~op2;
 		HandleALULogicalFlags(rd, sc);
 		break;
 	case OPCODE_TEQ:
@@ -1247,17 +1554,30 @@ static void HandleALU( data32_t insn )
 		if (rdn == eR15 && !(insn & INSN_S))
 		{
 			R15 = rd;
+
+			// extra cycles (PC written)
+			ARM7_ICOUNT -= 2;
 		}
 		else
 		{
 			//Rd = 15 and S Flag IS set, Result is placed in R15, and current mode SPSR moved to CPSR
 			if (rdn==eR15) {
 
-				//Update CPSR from SPSR
-				SET_CPSR(GET_REGISTER(SPSR));
-				SwitchMode(GET_MODE);
+				// When Rd is R15 and the S flag is set the result of the operation is placed in R15 and the SPSR corresponding to
+				// the current mode is moved to the CPSR. This allows state changes which automatically restore both PC and
+				// CPSR. --> This form of instruction should not be used in User mode. <--
+
+				if (GET_MODE != eARM7_MODE_USER)
+				{
+					// Update CPSR from SPSR
+					SET_CPSR(GET_REGISTER(SPSR));
+					SwitchMode(GET_MODE);
+				}
 
 				R15 = rd;
+				
+				// extra cycles (PC written)
+				ARM7_ICOUNT -= 2;
 
 				/* IRQ masks may have changed in this instruction */
 //				ARM7_CHECKIRQ;
@@ -1286,16 +1606,30 @@ static void HandleALU( data32_t insn )
 				LOG(("%08x: TST class on R15 no s bit set\n",R15));
 			#endif
 		}
+		
+		// extra cycles (PC written)
+		ARM7_ICOUNT -= 2;
 	}
+	
+	// compensate for the -3 at the end
+	ARM7_ICOUNT += 2;
 }
 
 static void HandleMul( data32_t insn)
 {
-	data32_t r;
+	UINT32 r, rm, rs;
+
+	// MUL takes 1S + mI and MLA 1S + (m+1)I cycles to execute, where S and I are as
+	// defined in 6.2 Cycle Types on page 6-2.
+	// m is the number of 8 bit multiplier array cycles required to complete the
+	// multiply, which is controlled by the value of the multiplier operand
+	// specified by Rs.
+
+	rm = GET_REGISTER(insn & INSN_MUL_RM);
+	rs = GET_REGISTER((insn & INSN_MUL_RS) >> INSN_MUL_RS_SHIFT);
 
 	/* Do the basic multiply of Rm and Rs */
-	r =	GET_REGISTER( insn&INSN_MUL_RM ) *
-	  	GET_REGISTER( (insn&INSN_MUL_RS)>>INSN_MUL_RS_SHIFT );
+	r = rm * rs;
 
 	#if ARM7_DEBUG_CORE
 	if( 
@@ -1309,7 +1643,9 @@ static void HandleMul( data32_t insn)
 	/* Add on Rn if this is a MLA */
 	if (insn & INSN_MUL_A)
 	{
-		r += GET_REGISTER((insn&INSN_MUL_RN)>>INSN_MUL_RN_SHIFT);
+		r += GET_REGISTER((insn & INSN_MUL_RN) >> INSN_MUL_RN_SHIFT);
+		// extra cycle for MLA
+		ARM7_ICOUNT -= 1;
 	}
 
 	/* Write the result */
@@ -1320,6 +1656,14 @@ static void HandleMul( data32_t insn)
 	{
 		SET_CPSR ( (GET_CPSR &~ (N_MASK | Z_MASK)) | HandleALUNZFlags(r));
 	}
+
+	if (rs & SIGN_BIT) rs = -rs;
+	if (rs < 0x00000100) ARM7_ICOUNT -= 1 + 1;
+	else if (rs < 0x00010000) ARM7_ICOUNT -= 1 + 2;
+	else if (rs < 0x01000000) ARM7_ICOUNT -= 1 + 3;
+	else ARM7_ICOUNT -= 1 + 4;
+
+	ARM7_ICOUNT += 3;
 }
 
 //todo: add proper cycle counts
@@ -1328,6 +1672,10 @@ static void HandleSMulLong( data32_t insn)
 	INT32 rm, rs;
 	data32_t rhi,rlo;
 	INT64 res=0;
+
+	// MULL takes 1S + (m+1)I and MLAL 1S + (m+2)I cycles to execute, where m is the
+	// number of 8 bit multiplier array cycles required to complete the multiply, which is
+	// controlled by the value of the multiplier operand specified by Rs.
 
 	rm  = (INT32)GET_REGISTER(insn&0xf);
 	rs  = (INT32)GET_REGISTER(((insn>>8)&0xf));
@@ -1345,8 +1693,10 @@ static void HandleSMulLong( data32_t insn)
 	/* Add on Rn if this is a MLA */
 	if (insn & INSN_MUL_A)
 	{
-		INT64 acum = (INT64)((((INT64)(rhi))<<32) | rlo);
+		INT64 acum = (INT64)((((INT64)(GET_REGISTER(rhi)))<<32) | GET_REGISTER(rlo));
 		res += acum;
+		// extra cycle for MLA
+		ARM7_ICOUNT -= 1;
 	}
 
 	/* Write the result (upper dword goes to RHi, lower to RLo) */
@@ -1358,6 +1708,14 @@ static void HandleSMulLong( data32_t insn)
 	{
 		SET_CPSR ( (GET_CPSR &~ (N_MASK | Z_MASK)) | HandleLongALUNZFlags(res));
 	}
+
+	if (rs < 0) rs = -rs;
+	if (rs < 0x00000100) ARM7_ICOUNT -= 1 + 1 + 1;
+	else if (rs < 0x00010000) ARM7_ICOUNT -= 1 + 2 + 1;
+	else if (rs < 0x01000000) ARM7_ICOUNT -= 1 + 3 + 1;
+	else ARM7_ICOUNT -= 1 + 4 + 1;
+
+	ARM7_ICOUNT += 3;
 }
 
 //todo: add proper cycle counts
@@ -1366,6 +1724,10 @@ static void HandleUMulLong( data32_t insn)
 	UINT32 rm, rs;
 	data32_t rhi,rlo;
 	UINT64 res=0;
+
+	// MULL takes 1S + (m+1)I and MLAL 1S + (m+2)I cycles to execute, where m is the
+	// number of 8 bit multiplier array cycles required to complete the multiply, which is
+	// controlled by the value of the multiplier operand specified by Rs.
 
 	rm  = (UINT32)GET_REGISTER(insn&0xf);
 	rs  = (UINT32)GET_REGISTER(((insn>>8)&0xf));
@@ -1383,8 +1745,10 @@ static void HandleUMulLong( data32_t insn)
 	/* Add on Rn if this is a MLA */
 	if (insn & INSN_MUL_A)
 	{
-		UINT64 acum = (UINT64)((((UINT64)(rhi))<<32) | rlo);
+		UINT64 acum = (UINT64)((((UINT64)(GET_REGISTER(rhi)))<<32) | GET_REGISTER(rlo));
 		res += acum;
+		// extra cycle for MLA
+		ARM7_ICOUNT -= 1;
 	}
 
 	/* Write the result (upper dword goes to RHi, lower to RLo) */
@@ -1396,6 +1760,13 @@ static void HandleUMulLong( data32_t insn)
 	{
 		SET_CPSR ( (GET_CPSR &~ (N_MASK | Z_MASK)) | HandleLongALUNZFlags(res));
 	}
+
+	if (rs < 0x00000100) ARM7_ICOUNT -= 1 + 1 + 1;
+	else if (rs < 0x00010000) ARM7_ICOUNT -= 1 + 2 + 1;
+	else if (rs < 0x01000000) ARM7_ICOUNT -= 1 + 3 + 1;
+	else ARM7_ICOUNT -= 1 + 4 + 1;
+
+	ARM7_ICOUNT += 3;
 }
 
 static void HandleMemBlock( data32_t insn)
@@ -1409,8 +1780,10 @@ static void HandleMemBlock( data32_t insn)
 		LOG(("%08x: Unaligned Mem Transfer @ %08x\n",R15,rbp));
 #endif
 
-	//We will specify the cycle count for each case, so remove the -3 that occurs at the end
-	ARM7_ICOUNT +=3;
+	// Normal LDM instructions take nS + 1N + 1I and LDM PC takes (n+1)S + 2N + 1I
+	// incremental cycles, where S,N and I are as defined in 6.2 Cycle Types on page 6-2.
+	// STM instructions take (n-1)S + 2N incremental cycles to execute, where n is the
+	// number of words transferred.
 
 	if (insn & INSN_BDT_L)
 	{
@@ -1426,37 +1799,45 @@ static void HandleMemBlock( data32_t insn)
 			//S Flag Set, but R15 not in list = User Bank Transfer
 			if(insn & INSN_BDT_S && ((insn & 0x8000)==0))
 			{
-				//set to user mode - then do the transfer, and set back
-				int curmode = GET_MODE;
-				SwitchMode(eARM7_MODE_USER);
-				LOG(("%08x: User Bank Transfer not fully tested - please check if working properly!\n",R15));
-				result = loadInc( insn & 0xffff, rbp, insn&INSN_BDT_S );
+				// !! actually switching to user mode triggers a section permission fault in Happy Fish 302-in-1 (BP C0030DF4, press F5 ~16 times) !!
+				// set to user mode - then do the transfer, and set back
+				//int curmode = GET_MODE;
+				//SwitchMode(eARM7_MODE_USER);
+			#if ARM7_DEBUG_CORE
+				LOG(("%08x: User Bank Transfer not fully tested - please check if working properly!\n", R15));
+			#endif
+				result = loadIncMode(insn & 0xffff, rbp, insn & INSN_BDT_S, eARM7_MODE_USER);
 				//todo - not sure if Writeback occurs on User registers also.. 
-				SwitchMode(curmode);
+				//SwitchMode(curmode);
 			}
 			else
-				result = loadInc( insn & 0xffff, rbp, insn&INSN_BDT_S );
+				result = loadIncMode(insn & 0xffff, rbp, insn & INSN_BDT_S, GET_MODE);
 
-			if (insn & INSN_BDT_W)
+			if ((insn & INSN_BDT_W) && (ARM7.pendingAbtD == 0))
 			{
 				#if ARM7_DEBUG_CORE
 					if(rb==15)
 						LOG(("%08x:  Illegal LDRM writeback to r15\n",R15));
 				#endif
-				SET_REGISTER(rb,GET_REGISTER(rb)+result*4);
+				// "A LDM will always overwrite the updated base if the base is in the list." (also for a user bank transfer?)
+				// GBA "V-Rally 3" expects R0 not to be overwritten with the updated base value [BP 8077B0C]
+				if (((insn >> rb) & 1) == 0)
+				{
+					SET_REGISTER(rb,GET_REGISTER(rb)+result*4);
+				}
 			}
 
 			//R15 included? (NOTE: CPSR restore must occur LAST otherwise wrong registers restored!)
-			if (insn & 0x8000) {
+			if ((insn & 0x8000) && (ARM7.pendingAbtD == 0)) {
 				R15-=4;		//SJE: Remove 4, since we're adding +4 after this code executes
 				//S - Flag Set? Signals transfer of current mode SPSR->CPSR
 				if(insn & INSN_BDT_S) {
 					SET_CPSR(GET_REGISTER(SPSR));
 					SwitchMode(GET_MODE);
 				}
-			}
-			//LDM PC - takes 1 extra cycle
-			ARM7_ICOUNT -=1;
+				//LDM PC - takes 2 extra cycles
+				ARM7_ICOUNT -=2;
+			}			
 		}
 		else
 		{
@@ -1470,42 +1851,49 @@ static void HandleMemBlock( data32_t insn)
 			if(insn & INSN_BDT_S && ((insn & 0x8000)==0))
 			{
 				//set to user mode - then do the transfer, and set back
-				int curmode = GET_MODE;
-				SwitchMode(eARM7_MODE_USER);
+				//int curmode = GET_MODE;
+				//SwitchMode(eARM7_MODE_USER);
+			#if ARM7_DEBUG_CORE
 				LOG(("%08x: User Bank Transfer not fully tested - please check if working properly!\n",R15));
-				result = loadDec( insn&0xffff, rbp, insn&INSN_BDT_S );
+			#endif
+				result = loadDecMode(insn & 0xffff, rbp, insn & INSN_BDT_S, eARM7_MODE_USER);
 				//todo - not sure if Writeback occurs on User registers also.. 
-				SwitchMode(curmode);
+				//SwitchMode(curmode);
 			}
 			else
-				result = loadDec( insn&0xffff, rbp, insn&INSN_BDT_S );
+				result = loadDecMode(insn & 0xffff, rbp, insn & INSN_BDT_S, GET_MODE);
 
-			if (insn & INSN_BDT_W)
+			if ((insn & INSN_BDT_W) && (ARM7.pendingAbtD == 0))
 			{
-				if (rb==0xf)
+			#if ARM7_DEBUG_CORE
+				if (rb == 0xf)
 					LOG(("%08x:  Illegal LDRM writeback to r15\n",R15));
-				SET_REGISTER(rb,GET_REGISTER(rb)-result*4);
+			#endif
+				// "A LDM will always overwrite the updated base if the base is in the list." (also for a user bank transfer?)
+				if (((insn >> rb) & 1) == 0)
+				{
+					SET_REGISTER(rb,GET_REGISTER(rb)-result*4);
+				}
 			}
 			
 			//R15 included? (NOTE: CPSR restore must occur LAST otherwise wrong registers restored!)
-			if (insn & 0x8000) {
+			if ((insn & 0x8000) && (ARM7.pendingAbtD == 0)) {
 				R15-=4;		//SJE: Remove 4, since we're adding +4 after this code executes
 				//S - Flag Set? Signals transfer of current mode SPSR->CPSR
 				if(insn & INSN_BDT_S) {
 					SET_CPSR(GET_REGISTER(SPSR));
 					SwitchMode(GET_MODE);
 				}
-				//LDM PC - takes 1 extra cycle
-				ARM7_ICOUNT -=1;
+				//LDM PC - takes 2 extra cycles
+				ARM7_ICOUNT -=2;
 			}
-
-			//LDM (NO PC) takes nS + 1n + 1I cycles (n = # of register transfers)
-			ARM7_ICOUNT -= (result+1+1);
 		}
+		//LDM (NO PC) takes nS + 1n + 1I cycles (n = # of register transfers)
+		ARM7_ICOUNT -= (result+1+1);
 	} /* Loading */
 	else
 	{
-		/* Storing */
+		/* Storing - STM*/
 		if (insn & (1<<eR15))
 		{
 			#if ARM7_DEBUG_CORE
@@ -1523,49 +1911,53 @@ static void HandleMemBlock( data32_t insn)
 			}
 
 			//S Flag Set, but R15 not in list = User Bank Transfer
-			if(insn & INSN_BDT_S && ((insn & 0x8000)==0))
+			if(insn & INSN_BDT_S/* && ((insn & 0x8000)==0)*/)
 			{
 				//todo: needs to be tested..
 				
 				//set to user mode - then do the transfer, and set back
-				int curmode = GET_MODE;
-				SwitchMode(eARM7_MODE_USER);
+				//int curmode = GET_MODE;
+				//SwitchMode(eARM7_MODE_USER);
+			#if ARM7_DEBUG_CORE
 				LOG(("%08x: User Bank Transfer not fully tested - please check if working properly!\n",R15));
-				result = storeInc( insn&0xffff, rbp );
+			#endif
+				result = storeIncMode(insn & 0xffff, rbp, eARM7_MODE_USER);
 				//todo - not sure if Writeback occurs on User registers also.. 
-				SwitchMode(curmode);
+				//SwitchMode(curmode);
 			}
 			else
-				result = storeInc( insn&0xffff, rbp );
+				result = storeIncMode(insn & 0xffff, rbp, GET_MODE);
 
-			if( insn & INSN_BDT_W )
+			if(( insn & INSN_BDT_W ) && (ARM7.pendingAbtD == 0))
 			{
 				SET_REGISTER(rb,GET_REGISTER(rb)+result*4);
 			}
 		}
 		else
 		{
-			/* Decrementing */
+			/* Decrementing - but real CPU writes in incrementing order */
 			if (!(insn & INSN_BDT_P))
 			{
 				rbp = rbp - (- 4);
 			}
 
 			//S Flag Set, but R15 not in list = User Bank Transfer
-			if(insn & INSN_BDT_S && ((insn & 0x8000)==0))
+			if(insn & INSN_BDT_S /*&& ((insn & 0x8000)==0)*/)
 			{
 				//set to user mode - then do the transfer, and set back
-				int curmode = GET_MODE;
-				SwitchMode(eARM7_MODE_USER);
+				//int curmode = GET_MODE;
+				//SwitchMode(eARM7_MODE_USER);
+			#if ARM7_DEBUG_CORE
 				LOG(("%08x: User Bank Transfer not fully tested - please check if working properly!\n",R15));
-				result = storeDec( insn&0xffff, rbp );
+			#endif
+				result = storeDecMode(insn & 0xffff, rbp, eARM7_MODE_USER);
 				//todo - not sure if Writeback occurs on User registers also.. 
-				SwitchMode(curmode);
+				//SwitchMode(curmode);
 			}
 			else
-				result = storeDec( insn&0xffff, rbp );
+				result = storeDecMode(insn & 0xffff, rbp, GET_MODE);
 
-			if( insn & INSN_BDT_W )
+			if(( insn & INSN_BDT_W ) && (ARM7.pendingAbtD == 0))
 			{
 				SET_REGISTER(rb,GET_REGISTER(rb)-result*4);
 			}
@@ -1573,9 +1965,13 @@ static void HandleMemBlock( data32_t insn)
 		if( insn & (1<<eR15) )
 			R15 -= 12; //SJE: We added 12 for storing, but put it back as it was for executing
 
-		//STM takes (n+1)S+2N+1I cycles (n = # of register transfers)
-		ARM7_ICOUNT -= ((result+1)+2+1);
+		// STM takes (n-1)S + 2N cycles (n = # of register transfers)
+		ARM7_ICOUNT -= (result - 1) + 2;
 	}
+
+	// We will specify the cycle count for each case, so remove the -3 that occurs at the end
+	ARM7_ICOUNT += 3;
+
 } /* HandleMemBlock */
 
 

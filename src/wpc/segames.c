@@ -44,6 +44,39 @@ SE_ROMEND
 #define input_ports_apollo13 input_ports_se
 CORE_GAMEDEFNV(apollo13,"Apollo 13",1995,"Sega",de_mSES1,0)
 
+INITGAME(apollo1,GEN_WS,se_apollo,SE_DIGIT)
+SE128_ROMSTART(apollo1,"a13cpu.100",CRC(5971e956) SHA1(89853912fc569480e66bec4cef369d8320c3a07d))
+DE_DMD32ROM8x(   "a13dps.100",CRC(224f6149) SHA1(b2a1786adc358834615989fce8835e0f039abb24))
+DE2S_SOUNDROM1444("apollo13.u7" ,CRC(e58a36b8) SHA1(ae60470a7b6c41cd40dbb7c0bea6f2f148f7b088),
+                  "apollo13.u17",CRC(4e863aca) SHA1(264f9176a1abf758b7a894d83883330ef91b7388),
+                  "apollo13.u21",CRC(28169e37) SHA1(df5209d24187b546a4296fc4629c58bf729349d2),
+                  "apollo13.u36",CRC(cede5e0f) SHA1(fa3b5820ed58e57b3c6185d91e9aea28aebc28d7))
+SE_ROMEND
+#define input_ports_apollo1 input_ports_apollo13
+CORE_CLONEDEFNV(apollo1,apollo13,"Apollo 13 (v1.00)",1995,"Sega",de_mSES1,0)
+
+INITGAME(apollo2,GEN_WS,se_apollo,SE_DIGIT)
+SE128_ROMSTART(apollo2,"a13cpu.203",CRC(4af048fc) SHA1(c82459247707a6cf07a10cc884f1391d0ca536a3))
+DE_DMD32ROM8x(   "a13dps.201",CRC(ab97a71c) SHA1(1e01d3c2ac1b9153fb4f3f888fe01fcebbf853d7))
+DE2S_SOUNDROM1444("apollo13.u7" ,CRC(e58a36b8) SHA1(ae60470a7b6c41cd40dbb7c0bea6f2f148f7b088),
+                  "apollo13.u17",CRC(4e863aca) SHA1(264f9176a1abf758b7a894d83883330ef91b7388),
+                  "apollo13.u21",CRC(28169e37) SHA1(df5209d24187b546a4296fc4629c58bf729349d2),
+                  "apollo13.u36",CRC(cede5e0f) SHA1(fa3b5820ed58e57b3c6185d91e9aea28aebc28d7))
+SE_ROMEND
+#define input_ports_apollo2 input_ports_apollo13
+CORE_CLONEDEFNV(apollo2,apollo13,"Apollo 13 (v2.03)",1995,"Sega",de_mSES1,0)
+
+INITGAME(apollo14,GEN_WS,se_apollo,SE_DIGIT)
+SE128_ROMSTART(apollo14,"apolcpu.501",CRC(5afb8801) SHA1(65608148817f487c384dd36c221138962f1d9824))
+DE_DMD32ROM8x(   "a13dspa.401",CRC(6516ee16) SHA1(17011df142707917af2e0ec77c0e5ae78df91c0d))
+DE2S_SOUNDROM1444("apollo13.u7" ,CRC(e58a36b8) SHA1(ae60470a7b6c41cd40dbb7c0bea6f2f148f7b088),
+                  "apollo13.u17",CRC(4e863aca) SHA1(264f9176a1abf758b7a894d83883330ef91b7388),
+                  "apollo13.u21",CRC(28169e37) SHA1(df5209d24187b546a4296fc4629c58bf729349d2),
+                  "apollo13.u36",CRC(cede5e0f) SHA1(fa3b5820ed58e57b3c6185d91e9aea28aebc28d7))
+SE_ROMEND
+#define input_ports_apollo14 input_ports_apollo13
+CORE_CLONEDEFNV(apollo14,apollo13,"Apollo 13 (Game 5.01, Display 4.01)",1995,"Sega",de_mSES1,0)
+
 /*-------------------------------------------------------------------
 / Goldeneye
 /-------------------------------------------------------------------*/
@@ -100,7 +133,37 @@ DE2S_SOUNDROM144 ("id4sndu7.512",CRC(deeaed37) SHA1(06d79967a25af0b90a5f1d6360a5
                   "id4sdu21.400",CRC(f384a9ab) SHA1(06bd607e7efd761017a7b605e0294a34e4c6255c))
 SE_ROMEND
 #define input_ports_id4 input_ports_se
-CORE_GAMEDEFNV(id4,"ID4: Independence Day",1996,"Sega",de_mSES1,0)
+CORE_GAMEDEFNV(id4,"ID4: Independence Day (v2.02)",1996,"Sega",de_mSES1,0)
+
+INITGAME(id4f,GEN_WS,se_dmd128x32,0)
+SE128_ROMSTART(id4f, "id4cpu.202",CRC(108d88fd) SHA1(8317944201acfb97dadfdd364696c9e81a21d2c5))
+DE_DMD32ROM8x(    "id4dspf.200",CRC(4b52676b) SHA1(a881efb28d8bab424d8c12be2c16b8afc7472208))
+DE2S_SOUNDROM144 ("id4sndu7.512",CRC(deeaed37) SHA1(06d79967a25af0b90a5f1d6360a5b5fdbb972d5a),
+                  "id4sdu17.400",CRC(89ffeca3) SHA1(b94c60e3a433f797d6c5ea793c3ecff0a3b6ba60),
+                  "id4sdu21.400",CRC(f384a9ab) SHA1(06bd607e7efd761017a7b605e0294a34e4c6255c))
+SE_ROMEND
+#define input_ports_id4f input_ports_se
+CORE_GAMEDEFNV(id4f,"ID4: Independence Day (v2.02 French)",1996,"Sega",de_mSES1,0)
+
+INITGAME(id4_201,GEN_WS,se_dmd128x32,0)
+SE128_ROMSTART(id4_201, "id4cpu.201",CRC(c0cd47a1) SHA1(63bb6da28b4f6fcc8525a8f1a6d262e35931efc9))
+DE_DMD32ROM8x(    "id4dspa.200",CRC(2d3fbcc4) SHA1(0bd69ebb68ae880ac9aae40916f13e1ff84ecfaa))
+DE2S_SOUNDROM144 ("id4sndu7.512",CRC(deeaed37) SHA1(06d79967a25af0b90a5f1d6360a5b5fdbb972d5a),
+                  "id4sdu17.400",CRC(89ffeca3) SHA1(b94c60e3a433f797d6c5ea793c3ecff0a3b6ba60),
+                  "id4sdu21.400",CRC(f384a9ab) SHA1(06bd607e7efd761017a7b605e0294a34e4c6255c))
+SE_ROMEND
+#define input_ports_id4_201 input_ports_se
+CORE_GAMEDEFNV(id4_201,"ID4: Independence Day (v2.01)",1996,"Sega",de_mSES1,0)
+
+INITGAME(id4_201f,GEN_WS,se_dmd128x32,0)
+SE128_ROMSTART(id4_201f, "id4cpu.201",CRC(c0cd47a1) SHA1(63bb6da28b4f6fcc8525a8f1a6d262e35931efc9))
+DE_DMD32ROM8x(    "id4dspf.200",CRC(4b52676b) SHA1(a881efb28d8bab424d8c12be2c16b8afc7472208))
+DE2S_SOUNDROM144 ("id4sndu7.512",CRC(deeaed37) SHA1(06d79967a25af0b90a5f1d6360a5b5fdbb972d5a),
+                  "id4sdu17.400",CRC(89ffeca3) SHA1(b94c60e3a433f797d6c5ea793c3ecff0a3b6ba60),
+                  "id4sdu21.400",CRC(f384a9ab) SHA1(06bd607e7efd761017a7b605e0294a34e4c6255c))
+SE_ROMEND
+#define input_ports_id4_201f input_ports_se
+CORE_GAMEDEFNV(id4_201f,"ID4: Independence Day (v2.01 French)",1996,"Sega",de_mSES1,0)
 
 /*-------------------------------------------------------------------
 / Space Jam
@@ -117,7 +180,15 @@ DE_DMD32ROM8x(  "jamdspa.300",CRC(198e5e34) SHA1(e2ba9ff1cea84c5d41f32afc50229cb
 JAM_SND
 SE_ROMEND
 #define input_ports_spacejam input_ports_se
-CORE_GAMEDEFNV(spacejam,"Space Jam",1997,"Sega",de_mSES1,0)
+CORE_GAMEDEFNV(spacejam,"Space Jam (3.00)",1997,"Sega",de_mSES1,0)
+
+SE128_ROMSTART(spacejm2,"jamcpu.200",CRC(d80c069b) SHA1(bf6e96100b158f058b5f07f537ad0fa0a0fbe31d))
+DE_DMD32ROM8x(  "jamdspa.200",CRC(4a05ec31) SHA1(eb962f5f2160508e0f81b252e8644d8aa833d7fd))
+JAM_SND
+SE_ROMEND
+#define input_ports_spacejm2 input_ports_spacejam
+#define init_spacejm2 init_spacejam
+CORE_CLONEDEFNV(spacejm2,spacejam,"Space Jam (2.00)",1997,"Sega",de_mSES1,0)
 
 SE128_ROMSTART(spacejmg,"jamcpu.300",CRC(9dc8df2e) SHA1(b3b111afb5b1f1236be73e899b34a5d5a73813e9))
 DE_DMD32ROM8x(  "jamdspg.300",CRC(41f6e188) SHA1(da2247022aadb0ead5a3b1d7b829c13ff1153ec8))
@@ -215,6 +286,16 @@ SE_ROMEND
 #define init_xfiles2 init_xfiles
 CORE_CLONEDEFNV(xfiles2,xfiles,"X-Files (2.04)",1997,"Sega",de_mSES1,0)
 
+INITGAME(xfiles20,GEN_WS,se_dmd128x32,0)
+SE128_ROMSTART(xfiles20,"xfcpu.200",CRC(fd9e8ae8) SHA1(7f904eaae437bf938f01e9df875b9415167fc4c5))
+DE_DMD32ROM8x(   "xfildspa.200",CRC(3fb161c3) SHA1(ea00c5c5a1e4908fcc34b0558b89325db091595d))
+DE2S_SOUNDROM144( "xfsndu7.512" ,CRC(01d65239) SHA1(9e680de940a15ef85a5615b789c58cd5973ff11b),
+                  "xfsndu17.c40",CRC(40bfc835) SHA1(2d6ac82acbbf9645bcb84fab7f285f2373e516a8),
+                  "xfsndu21.c40",CRC(b56a5ca6) SHA1(5fa23a8bb57e45aca159882226e603d9a6be078b))
+SE_ROMEND
+#define input_ports_xfiles20 input_ports_xfiles
+CORE_CLONEDEFNV(xfiles20,xfiles,"X-Files (2.00)",1997,"Sega",de_mSES1,0)
+
 /*-------------------------------------------------------------------
 / Starship Troopers
 /-------------------------------------------------------------------*/
@@ -227,7 +308,18 @@ DE2S_SOUNDROM1444("u7_b130.512" ,CRC(f1559e4f) SHA1(82b56f097412052bc1638a3f1c13
                   "u36_95a7.040",CRC(c1e4ca6a) SHA1(487de78ebf1ee8cc721f2ef7b1bd42d2f7b27456))
 SE_ROMEND
 #define input_ports_startrp input_ports_se
-CORE_GAMEDEFNV(startrp,"Starship Troopers",1997,"Sega",de_mSES1,0)
+CORE_GAMEDEFNV(startrp,"Starship Troopers (2.01)",1997,"Sega",de_mSES1,0)
+
+INITGAME(startrp2,GEN_WS,se_dmd128x32,0)
+SE128_ROMSTART(startrp2, "sstcpu.200",CRC(1bd865a5) SHA1(770d87d5108b58e214e551cfdcd4b75a11d6b88b))
+DE_DMD32ROM8x(    "sstdspa.200",CRC(76a0e09e) SHA1(a4103aeee752d824a3811124079e40acc7286271))
+DE2S_SOUNDROM1444("u7_b130.512" ,CRC(f1559e4f) SHA1(82b56f097412052bc1638a3f1c1319009df707f4),
+                  "u17_152a.040",CRC(8caeccdb) SHA1(390f07e48a176a24fe99a202f3fa2b9767d84230),
+                  "u21_0291.040",CRC(0c5321f6) SHA1(4a51daa16d489ab61d462d44f887c8422f863c5c),
+                  "u36_95a7.040",CRC(c1e4ca6a) SHA1(487de78ebf1ee8cc721f2ef7b1bd42d2f7b27456))
+SE_ROMEND
+#define input_ports_startrp2 input_ports_startrp
+CORE_CLONEDEFNV(startrp2,startrp,"Starship Troopers (2.00)",1997,"Sega",de_mSES1,0)
 
 /*-------------------------------------------------------------------
 / Viper Night Drivin'
@@ -242,7 +334,19 @@ DE2S_SOUNDROM14444("vpru7.dat" ,CRC(f21617d7) SHA1(78d1ade400b83c62bb6288bccf386
                   "vpru37.dat",CRC(0bf23e0e) SHA1(b5724ed6cfe791320a8cf208cc20a2d3f0db85c8))
 SE_ROMEND
 #define input_ports_viprsega input_ports_se
-CORE_GAMEDEFNV(viprsega,"Viper Night Drivin'",1998,"Sega",de_mSES1,0)
+CORE_GAMEDEFNV(viprsega,"Viper Night Drivin' (2.01)",1998,"Sega",de_mSES1,0)
+
+INITGAME(vipr_102,GEN_WS,se_dmd128x32,0)
+SE128_ROMSTART(vipr_102, "vipcpu.102",CRC(6046974b) SHA1(56e3de5ccb5a04d6ee5555ee6755835e75e7454f))
+DE_DMD32ROM8x(   "vipdspa.100",CRC(25acf3db) SHA1(3476f2b95cfff9dfb4fe9cf7c5cccae85f23343a))
+DE2S_SOUNDROM14444("vpru7.dat" ,CRC(f21617d7) SHA1(78d1ade400b83c62bb6288bccf386ef34050dd04),
+                  "vpru17.dat",CRC(47b1317c) SHA1(32259965b5a12f63267af96eef8396bf71895a65),
+                  "vpru21.dat",CRC(0e0e2dd6) SHA1(b409c837a52eb399c9a4896ca0c502360c93dcc9),
+                  "vpru36.dat",CRC(7b482876) SHA1(c8960c2d45a77a35d22408c7bb8ba322e7af36f0),
+                  "vpru37.dat",CRC(0bf23e0e) SHA1(b5724ed6cfe791320a8cf208cc20a2d3f0db85c8))
+SE_ROMEND
+#define input_ports_vipr_102 input_ports_viprsega
+CORE_CLONEDEFNV(vipr_102, viprsega,"Viper Night Drivin' (1.02)",1998,"Sega",de_mSES1,0)
 
 /*-------------------------------------------------------------------
 / Lost in Space
@@ -286,7 +390,31 @@ DE2S_SOUNDROM14444("gdzu7.100" ,CRC(a0afe8b7) SHA1(33e4a824b26b58e8f963fa8a525a6
                   "gdzu37.100",CRC(2c1acb14) SHA1(4d710e09f5500da937932b4b01d862abb4a89e5a))
 SE_ROMEND
 #define input_ports_godzilla input_ports_se
-CORE_GAMEDEFNV(godzilla,"Godzilla",1998,"Sega",de_mSES1,0)
+CORE_GAMEDEFNV(godzilla,"Godzilla (2.05)",1998,"Sega",de_mSES1,0)
+
+INITGAME(godz_100,GEN_WS,se_dmd128x32,0)
+SE128_ROMSTART(godz_100,"gdzcpu.100",CRC(55c46a98) SHA1(535c363fed2359add260149b6407dc95da32a1e3))
+DE_DMD32ROM8x(  "gzdspa.100",CRC(9b97cd98) SHA1(6fd002a6986aa32832c0628899ba1bafe3642354))
+DE2S_SOUNDROM14444("gdzu7.100" ,CRC(a0afe8b7) SHA1(33e4a824b26b58e8f963fa8a525a64f4779b45db),
+                  "gdzu17.100",CRC(6bba69c8) SHA1(51341e188b4191eb1836349dfdd456163d464ad6),
+                  "gdzu21.100",CRC(db738958) SHA1(23082cf98bbcc6d356145414267da887a5ca9305),
+                  "gdzu36.100",CRC(e3f24234) SHA1(eb123200928221a647e10839ebb7f4628501c581),
+                  "gdzu37.100",CRC(2c1acb14) SHA1(4d710e09f5500da937932b4b01d862abb4a89e5a))
+SE_ROMEND
+#define input_ports_godz_100 input_ports_se
+CORE_GAMEDEFNV(godz_100,"Godzilla (1.00)",1998,"Sega",de_mSES1,0)
+
+INITGAME(godz_090,GEN_WS,se_dmd128x32,0)
+SE128_ROMSTART(godz_090,"gdzcpu.090",CRC(54e3b6d7) SHA1(c11cf71140c00c96c7feea569fa04f75061b9af7))
+DE_DMD32ROM8x(  "gzdspa.090",CRC(56dde3a4) SHA1(332f09ade962e07a2979ad7bf743f632ea942440))
+DE2S_SOUNDROM14444("gdzu7.090" ,CRC(076401a9) SHA1(17aa63c2b26e6fc4849a5101ff9704606de3de65),
+                  "gdzu17.090",CRC(b15be745) SHA1(395631df3fef80641c189e57cddfc0ec5dcdbcef),
+                  "gdzu21.090",CRC(019207d5) SHA1(a98d191d686d4a04f7fad90dd0e86e8b48ff3a3b),
+                  "gdzu36.090",CRC(3913ccb9) SHA1(ddce224661894438a12135306484f711d10ce8be),
+                  "gdzu37.090",CRC(1410ae6b) SHA1(28d025403fd60b1bb132cffcc14be21be48d808c))
+SE_ROMEND
+#define input_ports_godz_090 input_ports_se
+CORE_GAMEDEFNV(godz_090,"Godzilla (0.90)",1998,"Sega",de_mSES1,0)
 
 /********************* SEGA GAMES DISTRIBUTED BY STERN  **********************/
 
@@ -316,7 +444,7 @@ SE_ROMEND
 CORE_CLONEDEF(sprk,096,103,"South Park (0.96)",1999,"Sega",de_mSES1,0)
 
 SE128_ROMSTART(sprk_090,"spkcpu.090",CRC(bc3f8531) SHA1(5408e008c4f545bb4f82308b118d15525f8a263a))
-DE_DMD32ROM8x(    "spdspa.101",CRC(48ca598d) SHA1(0827ac7bb5cf12b0e63860b73a808273d984509e))
+DE_DMD32ROM8x(    "spdspa.090",CRC(c333dd48) SHA1(fe2be9274c06b2f39fa2e14e0d44ce7213282f3b))
 DE2S_SOUNDROM18888("spku7.090",CRC(19937fbd) SHA1(ebd7c8f1604accbeb7c00066ecf811193a2cb588),
                   "spku17.090",CRC(05a8670e) SHA1(7c0f1f0c9b94f0327c820f002bffc4ea05670ec8),
                   "spku21.090",CRC(c8629ee7) SHA1(843a742cb5cfce21a83618d14ae08ee1930d36cc),
@@ -735,6 +863,46 @@ SE_ROMEND
 #define init_play303i init_playboys
 CORE_CLONEDEFNV(play303i,playboys,"Playboy (3.03 Italy)",2002,"Stern",de_mSES2,0)
 
+SE128_ROMSTART(play302,  "pbcpu.302",    CRC(206285ed) SHA1(65ec90b20f7be6fac62170f69b744f9e4eb6254c))
+DE_DMD32ROM8x(           "pbdispa.300",  CRC(2dbb372a) SHA1(b694ae06f380ea9f9730ea6bbfab7f9f7ec7342b))
+PLAY_SND
+SE_ROMEND
+#define input_ports_play302 input_ports_playboys
+#define init_play302 init_playboys
+CORE_CLONEDEFNV(play302,playboys,"Playboy (3.02)",2002,"Stern",de_mSES2,0)
+
+SE128_ROMSTART(play302l, "pbcpu.302",    CRC(206285ed) SHA1(65ec90b20f7be6fac62170f69b744f9e4eb6254c))
+DE_DMD32ROM8x(           "pbdispl.300",  CRC(e7697fc3) SHA1(7a9796e7b99af0d3d2079876a8054209a3067e64))
+PLAY_SND
+SE_ROMEND
+#define input_ports_play302l input_ports_playboys
+#define init_play302l init_playboys
+CORE_CLONEDEFNV(play302l,playboys,"Playboy (3.02 Spain)",2002,"Stern",de_mSES2,0)
+
+SE128_ROMSTART(play302g, "pbcpu.302",    CRC(206285ed) SHA1(65ec90b20f7be6fac62170f69b744f9e4eb6254c))
+DE_DMD32ROM8x(           "pbdispg.300",  CRC(ed7b7c62) SHA1(28b0ab490f8abd5f29e8cb0996da9e7200918157))
+PLAY_SND
+SE_ROMEND
+#define input_ports_play302g input_ports_playboys
+#define init_play302g init_playboys
+CORE_CLONEDEFNV(play302g,playboys,"Playboy (3.02 Germany)",2002,"Stern",de_mSES2,0)
+
+SE128_ROMSTART(play302f, "pbcpu.302",    CRC(206285ed) SHA1(65ec90b20f7be6fac62170f69b744f9e4eb6254c))
+DE_DMD32ROM8x(           "pbdispf.300",  CRC(69ab3bb2) SHA1(59d7ad5eca701d1216200cd489d2d07825a0856e))
+PLAY_SND
+SE_ROMEND
+#define input_ports_play302f input_ports_playboys
+#define init_play302f init_playboys
+CORE_CLONEDEFNV(play302f,playboys,"Playboy (3.02 France)",2002,"Stern",de_mSES2,0)
+
+SE128_ROMSTART(play302i, "pbcpu.302",    CRC(206285ed) SHA1(65ec90b20f7be6fac62170f69b744f9e4eb6254c))
+DE_DMD32ROM8x(           "pbdispi.300",  CRC(74c8cedf) SHA1(474ad1939ea0a58852003e549ed85478e239a67c))
+PLAY_SND
+SE_ROMEND
+#define input_ports_play302i input_ports_playboys
+#define init_play302i init_playboys
+CORE_CLONEDEFNV(play302i,playboys,"Playboy (3.02 Italy)",2002,"Stern",de_mSES2,0)
+
 SE128_ROMSTART(play300,  "pbcpu.300",    CRC(d7e5bada) SHA1(e4d5bc015751a559eb95acb6da04246b7418eaf5))
 DE_DMD32ROM8x(           "pbdispa.300",  CRC(2dbb372a) SHA1(b694ae06f380ea9f9730ea6bbfab7f9f7ec7342b))
 PLAY_SND
@@ -1044,6 +1212,38 @@ SE_ROMEND
 #define init_simp400i init_simpprty
 CORE_CLONEDEFNV(simp400i,simpprty,"Simpsons Pinball Party, The (4.00 Italy)",2003,"Stern",de_mSES2,0)
 
+SE128_ROMSTART(simp300, "spp-cpu.300", CRC(d9e02665) SHA1(12875c845c12b6676aa0af7c717fdf074156d938))
+DE_DMD32ROM8x(           "sppdspa.300",CRC(57c4f297) SHA1(91ae894293b1252213a7137400f89c7ac2c6e877))
+SPP_SND
+SE_ROMEND
+#define input_ports_simp300 input_ports_simpprty
+#define init_simp300 init_simpprty
+CORE_CLONEDEFNV(simp300,simpprty,"Simpsons Pinball Party, The (3.00)",2003,"Stern",de_mSES2,0)
+
+SE128_ROMSTART(simp300l, "spp-cpu.300", CRC(d9e02665) SHA1(12875c845c12b6676aa0af7c717fdf074156d938))
+DE_DMD32ROM8x(           "sppdspl.300",CRC(d91ec782) SHA1(a01ebecb03200738b47177b02a689148d822ff0e))
+SPP_SND
+SE_ROMEND
+#define input_ports_simp300l input_ports_simpprty
+#define init_simp300l init_simpprty
+CORE_CLONEDEFNV(simp300l,simpprty,"Simpsons Pinball Party, The (3.00 Spain)",2003,"Stern",de_mSES2,0)
+
+SE128_ROMSTART(simp300f, "spp-cpu.300", CRC(d9e02665) SHA1(12875c845c12b6676aa0af7c717fdf074156d938))
+DE_DMD32ROM8x(           "sppdspf.300",CRC(cb848e0d) SHA1(ab9f32d3b693ebcef92fe21e04d760756c8f59c2))
+SPP_SND
+SE_ROMEND
+#define input_ports_simp300f input_ports_simpprty
+#define init_simp300f init_simpprty
+CORE_CLONEDEFNV(simp300f,simpprty,"Simpsons Pinball Party, The (3.00 France)",2003,"Stern",de_mSES2,0)
+
+SE128_ROMSTART(simp300i, "spp-cpu.300", CRC(d9e02665) SHA1(12875c845c12b6676aa0af7c717fdf074156d938))
+DE_DMD32ROM8x(           "sppdspi.300",CRC(31acf30a) SHA1(aad2b363bed93d22613b0530fcd2d7f850f8e616))
+SPP_SND
+SE_ROMEND
+#define input_ports_simp300i input_ports_simpprty
+#define init_simp300i init_simpprty
+CORE_CLONEDEFNV(simp300i,simpprty,"Simpsons Pinball Party, The (3.00 Italy)",2003,"Stern",de_mSES2,0)
+
 SE128_ROMSTART(simp204, "spp-cpu.204", CRC(5bc155f7) SHA1(78d793cecbc6561a891ff8007f33c63ec5515e9f))
 DE_DMD32ROM8x(           "sppdispa.201",CRC(f55505a4) SHA1(5616959caafc836d13db9c1a1e93cb4954f0c321))
 SPP_SND
@@ -1125,6 +1325,46 @@ SE_ROMEND
 #define input_ports_term3i input_ports_se
 #define init_term3i init_term3
 CORE_CLONEDEFNV(term3i,term3,"Terminator 3: Rise of the Machines (4.00 Italy)",2003,"Stern",de_mSES2,0)
+
+SE128_ROMSTART(term3_3, "t3cpu.301", CRC(172a0b83) SHA1(68f6a228182040a0ea6b310cb25d3d5bdd2574bf))
+DE_DMD32ROM8x(       "t3dispa.300", CRC(79b68a2f) SHA1(cd466c15ffe09666c115f843775e457138bf23bc))
+T3_SND
+SE_ROMEND
+#define input_ports_term3_3 input_ports_se
+#define init_term3_3 init_term3
+CORE_CLONEDEFNV(term3_3,term3,"Terminator 3: Rise of the Machines (3.01)",2003,"Stern",de_mSES2,0)
+
+SE128_ROMSTART(term3l_3, "t3cpu.301", CRC(172a0b83) SHA1(68f6a228182040a0ea6b310cb25d3d5bdd2574bf))
+DE_DMD32ROM8x(       "t3displ.300", CRC(2df35b3f) SHA1(5716b46c16cc7c4478f3118c4e6c3959b10624f8))
+T3_SND
+SE_ROMEND
+#define input_ports_term3l_3 input_ports_se
+#define init_term3l_3 init_term3
+CORE_CLONEDEFNV(term3l_3,term3,"Terminator 3: Rise of the Machines (3.01 Spain)",2003,"Stern",de_mSES2,0)
+
+SE128_ROMSTART(term3f_3, "t3cpu.301", CRC(172a0b83) SHA1(68f6a228182040a0ea6b310cb25d3d5bdd2574bf))
+DE_DMD32ROM8x(       "t3dispf.300", CRC(d5c68903) SHA1(00ca09f087e5b2a742d0bf6f2ff5706a2b83a295))
+T3_SND
+SE_ROMEND
+#define input_ports_term3f_3 input_ports_se
+#define init_term3f_3 init_term3
+CORE_CLONEDEFNV(term3f_3,term3,"Terminator 3: Rise of the Machines (3.01 France)",2003,"Stern",de_mSES2,0)
+
+SE128_ROMSTART(term3g_3, "t3cpu.301", CRC(172a0b83) SHA1(68f6a228182040a0ea6b310cb25d3d5bdd2574bf))
+DE_DMD32ROM8x(       "t3dispg.300", CRC(9115ea52) SHA1(52bd2cbe609363d9904b82704072fc3c398a7c18))
+T3_SND
+SE_ROMEND
+#define input_ports_term3g_3 input_ports_se
+#define init_term3g_3 init_term3
+CORE_CLONEDEFNV(term3g_3,term3,"Terminator 3: Rise of the Machines (3.01 Germany)",2003,"Stern",de_mSES2,0)
+
+SE128_ROMSTART(term3i_3, "t3cpu.301", CRC(172a0b83) SHA1(68f6a228182040a0ea6b310cb25d3d5bdd2574bf))
+DE_DMD32ROM8x(       "t3dispi.300", CRC(30573629) SHA1(85ae7183b42a62f62aa3ba6441717fc7a49dd03a))
+T3_SND
+SE_ROMEND
+#define input_ports_term3i_3 input_ports_se
+#define init_term3i_3 init_term3
+CORE_CLONEDEFNV(term3i_3,term3,"Terminator 3: Rise of the Machines (3.01 Italy)",2003,"Stern",de_mSES2,0)
 
 SE128_ROMSTART(term3_2, "t3cpu.205", CRC(219d8155) SHA1(dac3c390d238872703a0ec65cb3dddc89630359c))
 DE_DMD32ROM8x(       "t3dispa.201", CRC(a314acd1) SHA1(4d5072e65f8041d24c1bab2985ef5b30e1895bf3))
@@ -1275,7 +1515,7 @@ SE_ROMEND
 #define init_lotr_sp8 init_lotr
 CORE_CLONEDEFNV(lotr_sp8,lotr,"Lord Of The Rings, The (8.00 Spain)",2004,"Stern",de_mSES3,0)
 
-SE128_ROMSTART(lotr_gr8, "lotrcpu.800", CRC(b69cdecc) SHA1(40f7c2d25a1028255be8fe25e3aa6d11976edd25))
+SE128_ROMSTART(lotr_gr8, "lotrcpu.800", CRC(655e5b3c) SHA1(bd6fd25e17cee40d6bb842367b1ce922bbd46003))
 DE_DMD32ROM8x(          "lotrdspg.800", CRC(55765c23) SHA1(690a72e8cb1099a6873eb3214e72bb0fea54fa22))
 LOTR_SND
 SE_ROMEND
@@ -1283,7 +1523,7 @@ SE_ROMEND
 #define init_lotr_gr8 init_lotr
 CORE_CLONEDEFNV(lotr_gr8,lotr,"Lord Of The Rings, The (8.00 Germany)",2004,"Stern",de_mSES3,0)
 
-SE128_ROMSTART(lotr_fr8, "lotrcpu.800", CRC(b69cdecc) SHA1(40f7c2d25a1028255be8fe25e3aa6d11976edd25))
+SE128_ROMSTART(lotr_fr8, "lotrcpu.800", CRC(655e5b3c) SHA1(bd6fd25e17cee40d6bb842367b1ce922bbd46003))
 DE_DMD32ROM8x(          "lotrdspf.800", CRC(e1ccc04b) SHA1(1d5c7ea06f0cb2e1965c968ed01330867aae8e2b))
 LOTR_SND
 SE_ROMEND
@@ -1291,7 +1531,7 @@ SE_ROMEND
 #define init_lotr_fr8 init_lotr
 CORE_CLONEDEFNV(lotr_fr8,lotr,"Lord Of The Rings, The (8.00 France)",2004,"Stern",de_mSES3,0)
 
-SE128_ROMSTART(lotr_it8, "lotrcpu.800", CRC(b69cdecc) SHA1(40f7c2d25a1028255be8fe25e3aa6d11976edd25))
+SE128_ROMSTART(lotr_it8, "lotrcpu.800", CRC(655e5b3c) SHA1(bd6fd25e17cee40d6bb842367b1ce922bbd46003))
 DE_DMD32ROM8x(          "lotrdspi.800", CRC(b80730d7) SHA1(552c0bfac1c7a6b246829378a30d58769e695f7e))
 LOTR_SND
 SE_ROMEND
@@ -1338,6 +1578,158 @@ SE_ROMEND
 #define input_ports_lotr_it7 input_ports_lotr
 #define init_lotr_it7 init_lotr
 CORE_CLONEDEFNV(lotr_it7,lotr,"Lord Of The Rings, The (7.00 Italy)",2004,"Stern",de_mSES3,0)
+
+SE128_ROMSTART(lotr6, "lotrcpu.600", CRC(02786892) SHA1(6810d5a5eb80f520e611a46921dbd2906fbebf2f))
+DE_DMD32ROM8x(          "lotrdspa.600", CRC(d2098cec) SHA1(06c5c0b29e1442f503b4b374537b9d233721b4b6))
+LOTR_SND
+SE_ROMEND
+#define input_ports_lotr6 input_ports_lotr
+#define init_lotr6 init_lotr
+CORE_CLONEDEFNV(lotr6,lotr,"Lord Of The Rings, The (6.00)",2004,"Stern",de_mSES3,0)
+
+SE128_ROMSTART(lotr_sp6, "lotrcpul.600", CRC(af06c560) SHA1(0dec564e8e50ca8e05c462517db38ae48e512e79))
+DE_DMD32ROM8x(          "lotrdspl.600", CRC(d664d989) SHA1(575f9dcc7cb8aac4bfdb25575b7b9c00cf6459b9))
+LOTR_SND_SP
+SE_ROMEND
+#define input_ports_lotr_sp6 input_ports_lotr
+#define init_lotr_sp6 init_lotr
+CORE_CLONEDEFNV(lotr_sp6,lotr,"Lord Of The Rings, The (6.00 Spain)",2004,"Stern",de_mSES3,0)
+
+SE128_ROMSTART(lotr_gr6, "lotrcpu.600", CRC(02786892) SHA1(6810d5a5eb80f520e611a46921dbd2906fbebf2f))
+DE_DMD32ROM8x(          "lotrdspg.600", CRC(b0de0827) SHA1(1a0aa25a3b881148aafa5e2fabb7a3c501343524))
+LOTR_SND
+SE_ROMEND
+#define input_ports_lotr_gr6 input_ports_lotr
+#define init_lotr_gr6 init_lotr
+CORE_CLONEDEFNV(lotr_gr6,lotr,"Lord Of The Rings, The (6.00 Germany)",2004,"Stern",de_mSES3,0)
+
+SE128_ROMSTART(lotr_fr6, "lotrcpu.600", CRC(02786892) SHA1(6810d5a5eb80f520e611a46921dbd2906fbebf2f))
+DE_DMD32ROM8x(          "lotrdspf.600", CRC(5cf6c0b6) SHA1(d7fde5dda4c48da15b682ed9f52d20d8ea2accc9))
+LOTR_SND
+SE_ROMEND
+#define input_ports_lotr_fr6 input_ports_lotr
+#define init_lotr_fr6 init_lotr
+CORE_CLONEDEFNV(lotr_fr6,lotr,"Lord Of The Rings, The (6.00 France)",2004,"Stern",de_mSES3,0)
+
+SE128_ROMSTART(lotr_it6, "lotrcpu.600", CRC(02786892) SHA1(6810d5a5eb80f520e611a46921dbd2906fbebf2f))
+DE_DMD32ROM8x(          "lotrdspi.600", CRC(9d0b9b3d) SHA1(21363ddbb2c2510fcc9386020f2fd3f49e9c49c3))
+LOTR_SND
+SE_ROMEND
+#define input_ports_lotr_it6 input_ports_lotr
+#define init_lotr_it6 init_lotr
+CORE_CLONEDEFNV(lotr_it6,lotr,"Lord Of The Rings, The (6.00 Italy)",2004,"Stern",de_mSES3,0)
+
+SE128_ROMSTART(lotr51, "lotrcpu.501", CRC(df9fd692) SHA1(2d06c1a763330b1b9429961f3e13574e0eefe7a7))
+DE_DMD32ROM8x(          "lotrdspa.501", CRC(2d555b9f) SHA1(d2d23182dea810624cab010890971d8997f8570c))
+LOTR_SND
+SE_ROMEND
+#define input_ports_lotr51 input_ports_lotr
+#define init_lotr51 init_lotr
+CORE_CLONEDEFNV(lotr51,lotr,"Lord Of The Rings, The (5.01)",2004,"Stern",de_mSES3,0)
+
+SE128_ROMSTART(lotr_s51, "lotrcpul.501", CRC(4c0c7360) SHA1(f057931eb719a7a6691187fa7ca86cd6e4541d90))
+DE_DMD32ROM8x(          "lotrdspl.501", CRC(7e96c0f8) SHA1(2ef63b1b30fb2680b97a9080f7b9d76b4d2a76d4))
+LOTR_SND_SP
+SE_ROMEND
+#define input_ports_lotr_s51 input_ports_lotr
+#define init_lotr_s51 init_lotr
+CORE_CLONEDEFNV(lotr_s51,lotr,"Lord Of The Rings, The (5.01 Spain)",2004,"Stern",de_mSES3,0)
+
+SE128_ROMSTART(lotr_g51, "lotrcpu.501", CRC(df9fd692) SHA1(2d06c1a763330b1b9429961f3e13574e0eefe7a7))
+DE_DMD32ROM8x(          "lotrdspg.501", CRC(16984eaa) SHA1(999254d12402b0866e4a6f5bb2c03dc5c1c59c5f))
+LOTR_SND
+SE_ROMEND
+#define input_ports_lotr_g51 input_ports_lotr
+#define init_lotr_g51 init_lotr
+CORE_CLONEDEFNV(lotr_g51,lotr,"Lord Of The Rings, The (5.01 Germany)",2004,"Stern",de_mSES3,0)
+
+SE128_ROMSTART(lotr_f51, "lotrcpu.501", CRC(df9fd692) SHA1(2d06c1a763330b1b9429961f3e13574e0eefe7a7))
+DE_DMD32ROM8x(          "lotrdspf.501", CRC(a07596ac) SHA1(99db750971eafc3dba5f5d3e15728de306984ba4))
+LOTR_SND
+SE_ROMEND
+#define input_ports_lotr_f51 input_ports_lotr
+#define init_lotr_f51 init_lotr
+CORE_CLONEDEFNV(lotr_f51,lotr,"Lord Of The Rings, The (5.01 France)",2004,"Stern",de_mSES3,0)
+
+SE128_ROMSTART(lotr_i51, "lotrcpu.501", CRC(df9fd692) SHA1(2d06c1a763330b1b9429961f3e13574e0eefe7a7))
+DE_DMD32ROM8x(          "lotrdspi.501", CRC(440bbba1) SHA1(e85eca9a1b04ba8bc2784414f7003674bcafba9d))
+LOTR_SND
+SE_ROMEND
+#define input_ports_lotr_i51 input_ports_lotr
+#define init_lotr_i51 init_lotr
+CORE_CLONEDEFNV(lotr_i51,lotr,"Lord Of The Rings, The (5.01 Italy)",2004,"Stern",de_mSES3,0)
+
+SE128_ROMSTART(lotr5, "lotrcpu.500", CRC(4b45a543) SHA1(e0be3a4244025abc2c109f58b0d637262711b9db))
+DE_DMD32ROM8x(          "lotrdspa.500", CRC(19bda8d2) SHA1(a3d9e60f964d100594f82ed361f86e74c8d69748))
+LOTR_SND
+SE_ROMEND
+#define input_ports_lotr5 input_ports_lotr
+#define init_lotr5 init_lotr
+CORE_CLONEDEFNV(lotr5,lotr,"Lord Of The Rings, The (5.00)",2004,"Stern",de_mSES3,0)
+
+SE128_ROMSTART(lotr_sp5, "lotrcpul.500", CRC(298d10bd) SHA1(133990aed459d5fcd191a08462a231bbd3449387))
+DE_DMD32ROM8x(          "lotrdspl.500", CRC(ab538b24) SHA1(039aa8f4286694971cd9a78805bb9f3acabcd692))
+LOTR_SND_SP
+SE_ROMEND
+#define input_ports_lotr_sp5 input_ports_lotr
+#define init_lotr_sp5 init_lotr
+CORE_CLONEDEFNV(lotr_sp5,lotr,"Lord Of The Rings, The (5.00 Spain)",2004,"Stern",de_mSES3,0)
+
+SE128_ROMSTART(lotr_gr5, "lotrcpu.500", CRC(4b45a543) SHA1(e0be3a4244025abc2c109f58b0d637262711b9db))
+DE_DMD32ROM8x(          "lotrdspg.500", CRC(39177315) SHA1(13bcf2833ff89fe056517d3ea7b58fb31963cbfc))
+LOTR_SND
+SE_ROMEND
+#define input_ports_lotr_gr5 input_ports_lotr
+#define init_lotr_gr5 init_lotr
+CORE_CLONEDEFNV(lotr_gr5,lotr,"Lord Of The Rings, The (5.00 Germany)",2004,"Stern",de_mSES3,0)
+
+SE128_ROMSTART(lotr_fr5, "lotrcpu.500", CRC(4b45a543) SHA1(e0be3a4244025abc2c109f58b0d637262711b9db))
+DE_DMD32ROM8x(          "lotrdspf.500", CRC(ee5768a1) SHA1(05e696bfc4a7630b483f2f9acd39e53fefe937ef))
+LOTR_SND
+SE_ROMEND
+#define input_ports_lotr_fr5 input_ports_lotr
+#define init_lotr_fr5 init_lotr
+CORE_CLONEDEFNV(lotr_fr5,lotr,"Lord Of The Rings, The (5.00 France)",2004,"Stern",de_mSES3,0)
+
+SE128_ROMSTART(lotr_it5, "lotrcpu.500", CRC(4b45a543) SHA1(e0be3a4244025abc2c109f58b0d637262711b9db))
+DE_DMD32ROM8x(          "lotrdspi.500", CRC(ea8d4ac6) SHA1(f46e8c3f344babc67e72f7077880c21df0c42030))
+LOTR_SND
+SE_ROMEND
+#define input_ports_lotr_it5 input_ports_lotr
+#define init_lotr_it5 init_lotr
+CORE_CLONEDEFNV(lotr_it5,lotr,"Lord Of The Rings, The (5.00 Italy)",2004,"Stern",de_mSES3,0)
+
+SE128_ROMSTART(lotr41, "lotrcpu.410", CRC(458af09a) SHA1(2680f16d7f33ffc70b64bfb7d35cccf6989c70e2))
+DE_DMD32ROM8x(          "lotrdspa.404", CRC(1aefcbe7) SHA1(b17fc82425dd5a6ea5a17205d4000294324bb5cc))
+LOTR_SND
+SE_ROMEND
+#define input_ports_lotr41 input_ports_lotr
+#define init_lotr41 init_lotr
+CORE_CLONEDEFNV(lotr41,lotr,"Lord Of The Rings, The (4.10)",2004,"Stern",de_mSES3,0)
+
+SE128_ROMSTART(lotr_g41, "lotrcpu.410", CRC(458af09a) SHA1(2680f16d7f33ffc70b64bfb7d35cccf6989c70e2))
+DE_DMD32ROM8x(          "lotrdspg.404", CRC(b78975e5) SHA1(33d9f4d29a83ce0f68e654c15973dfdeee4d224d))
+LOTR_SND
+SE_ROMEND
+#define input_ports_lotr_g41 input_ports_lotr
+#define init_lotr_g41 init_lotr
+CORE_CLONEDEFNV(lotr_g41,lotr,"Lord Of The Rings, The (4.10 Germany)",2004,"Stern",de_mSES3,0)
+
+SE128_ROMSTART(lotr_f41, "lotrcpu.410", CRC(458af09a) SHA1(2680f16d7f33ffc70b64bfb7d35cccf6989c70e2))
+DE_DMD32ROM8x(          "lotrdspf.404", CRC(ebf4bb43) SHA1(5e392c3363db3d56b2ec66fcc43a59b5e8cdf944))
+LOTR_SND
+SE_ROMEND
+#define input_ports_lotr_f41 input_ports_lotr
+#define init_lotr_f41 init_lotr
+CORE_CLONEDEFNV(lotr_f41,lotr,"Lord Of The Rings, The (4.10 France)",2004,"Stern",de_mSES3,0)
+
+SE128_ROMSTART(lotr_i41, "lotrcpu.410", CRC(458af09a) SHA1(2680f16d7f33ffc70b64bfb7d35cccf6989c70e2))
+DE_DMD32ROM8x(          "lotrdspi.404", CRC(05db2615) SHA1(0146abd3681d351ef6c1160b85be8bed2886fb27))
+LOTR_SND
+SE_ROMEND
+#define input_ports_lotr_i41 input_ports_lotr
+#define init_lotr_i41 init_lotr
+CORE_CLONEDEFNV(lotr_i41,lotr,"Lord Of The Rings, The (4.10 Italy)",2004,"Stern",de_mSES3,0)
 
 SE128_ROMSTART(lotr4, "lotrcpu.401", CRC(b69cdecc) SHA1(40f7c2d25a1028255be8fe25e3aa6d11976edd25))
 DE_DMD32ROM8x(          "lotrdspa.403", CRC(2630cef1) SHA1(1dfd929e7eb57983f2fd9184d471f2e919359de0))
@@ -1551,6 +1943,46 @@ SE_ROMEND
 #define init_rip302l init_ripleys
 CORE_CLONEDEFNV(rip302l,ripleys,"Ripley's Believe It or Not! (3.02 Spain)",2004,"Stern",de_mSES3,0)
 
+SE128_ROMSTART(rip301, "ripcpu.301",CRC(a867d1b4) SHA1(dca4ba5c981397d26cac016d8438704f7adea0f3))
+DE_DMD32ROM8x(        "ripdispa.300",CRC(016907c9) SHA1(d37f1ca5ebe089fca879339cdaffc3fabf09c15c))
+RBION_SND
+SE_ROMEND
+#define input_ports_rip301 input_ports_ripleys
+#define init_rip301 init_ripleys
+CORE_CLONEDEFNV(rip301,ripleys,"Ripley's Believe It or Not! (3.01)",2004,"Stern",de_mSES3,0)
+
+SE128_ROMSTART(rip301f,"ripcpu.301",CRC(a867d1b4) SHA1(dca4ba5c981397d26cac016d8438704f7adea0f3))
+DE_DMD32ROM8x(        "ripdispf.301",CRC(e5ae9d99) SHA1(74929b324b457d08a925c641430e6a7036c7039d))
+RBION_SND_FR
+SE_ROMEND
+#define input_ports_rip301f input_ports_ripleys
+#define init_rip301f init_ripleys
+CORE_CLONEDEFNV(rip301f,ripleys,"Ripley's Believe It or Not! (3.01 France)",2004,"Stern",de_mSES3,0)
+
+SE128_ROMSTART(rip301g,"ripcpu.301",CRC(a867d1b4) SHA1(dca4ba5c981397d26cac016d8438704f7adea0f3))
+DE_DMD32ROM8x(        "ripdispg.300",CRC(1a75883b) SHA1(0ef2f4af72e435e5be9d3d8a6b69c66ae18271a1))
+RBION_SND_GR
+SE_ROMEND
+#define input_ports_rip301g input_ports_ripleys
+#define init_rip301g init_ripleys
+CORE_CLONEDEFNV(rip301g,ripleys,"Ripley's Believe It or Not! (3.01 Germany)",2004,"Stern",de_mSES3,0)
+
+SE128_ROMSTART(rip301i,"ripcpu.301",CRC(a867d1b4) SHA1(dca4ba5c981397d26cac016d8438704f7adea0f3))
+DE_DMD32ROM8x(        "ripdispi.300",CRC(c3541c04) SHA1(26256e8dee77bcfa96326d2e3f67b6fd3696c0c7))
+RBION_SND_IT
+SE_ROMEND
+#define input_ports_rip301i input_ports_ripleys
+#define init_rip301i init_ripleys
+CORE_CLONEDEFNV(rip301i,ripleys,"Ripley's Believe It or Not! (3.01 Italy)",2004,"Stern",de_mSES3,0)
+
+SE128_ROMSTART(rip301l,"ripcpu.301",CRC(a867d1b4) SHA1(dca4ba5c981397d26cac016d8438704f7adea0f3))
+DE_DMD32ROM8x(        "ripdispl.301",CRC(47c87ad4) SHA1(eb372b9f17b28d0781c49a28cb850916ccec323d))
+RBION_SND_SP
+SE_ROMEND
+#define input_ports_rip301l input_ports_ripleys
+#define init_rip301l init_ripleys
+CORE_CLONEDEFNV(rip301l,ripleys,"Ripley's Believe It or Not! (3.01 Spain)",2004,"Stern",de_mSES3,0)
+
 SE128_ROMSTART(rip300, "ripcpu.300",CRC(8c4bf2a9) SHA1(260dd5a99a36de541b5f852047ae4166afc621cc))
 DE_DMD32ROM8x(        "ripdispa.300",CRC(016907c9) SHA1(d37f1ca5ebe089fca879339cdaffc3fabf09c15c))
 RBION_SND
@@ -1671,6 +2103,46 @@ SE_ROMEND
 #define init_sopranoi init_sopranos
 CORE_CLONEDEFNV(sopranoi,sopranos,"Sopranos, The (5.00 Italy)",2005,"Stern",de_mSES3,GAME_IMPERFECT_SOUND)
 
+SE128_ROMSTART(sopr400, "sopcpua.400", CRC(68efcf24) SHA1(9ef30808260f96fb19067ee473add0c43dd6180e))
+DE_DMD32ROM8x(      "sopdspa.400", CRC(60d6b9d3) SHA1(925d2c84e486e4a71bd05b542429a0e22a99072f))
+SOP_SND
+SE_ROMEND
+#define input_ports_sopr400 input_ports_sopranos
+#define init_sopr400 init_sopranos
+CORE_CLONEDEFNV(sopr400,sopranos,"Sopranos, The (4.00)",2005,"Stern",de_mSES3,GAME_IMPERFECT_SOUND)
+
+SE128_ROMSTART(sopr400g, "sopcpug.400", CRC(44bd5b83) SHA1(edd11ee10a3bba9055363919f317421dee84cd85))
+DE_DMD32ROM8x(      "sopdspg.400", CRC(2672ef2c) SHA1(8e042b6a98edd8d7b7682d01914d8d021f526b35))
+SOP_SND_GR
+SE_ROMEND
+#define input_ports_sopr400g input_ports_sopranos
+#define init_sopr400g init_sopranos
+CORE_CLONEDEFNV(sopr400g,sopranos,"Sopranos, The (4.00 Germany)",2005,"Stern",de_mSES3,GAME_IMPERFECT_SOUND)
+
+SE128_ROMSTART(sopr400f, "sopcpuf.400", CRC(d6f770cd) SHA1(35f35bb91c1444ba42e29542213745b7e90c9b27))
+DE_DMD32ROM8x(      "sopdspf.400", CRC(df451810) SHA1(3c396cac89c57dbacde9b82681dd5600616d6d93))
+SOP_SND_FR
+SE_ROMEND
+#define input_ports_sopr400f input_ports_sopranos
+#define init_sopr400f init_sopranos
+CORE_CLONEDEFNV(sopr400f,sopranos,"Sopranos, The (4.00 France)",2005,"Stern",de_mSES3,GAME_IMPERFECT_SOUND)
+
+SE128_ROMSTART(sopr400l, "sopcpul.400", CRC(7fe54359) SHA1(cb00318484ad1e30ab86c3a239fd2ea322aa945e))
+DE_DMD32ROM8x(      "sopdspl.400", CRC(4fbef543) SHA1(3ffb48031451d3b318f88bfab4d92d2903993492))
+SOP_SND_SP
+SE_ROMEND
+#define input_ports_sopr400l input_ports_sopranos
+#define init_sopr400l init_sopranos
+CORE_CLONEDEFNV(sopr400l,sopranos,"Sopranos, The (4.00 Spain)",2005,"Stern",de_mSES3,GAME_IMPERFECT_SOUND)
+
+SE128_ROMSTART(sopr400i, "sopcpui.400", CRC(9bd48a86) SHA1(16aa55892a295a1486ede60df104520362005155))
+DE_DMD32ROM8x(      "sopdspi.400", CRC(7e58e364) SHA1(1fcf282ae68e3e725e16e43b85f57d1a18b43508))
+SOP_SND_IT
+SE_ROMEND
+#define input_ports_sopr400i input_ports_sopranos
+#define init_sopr400i init_sopranos
+CORE_CLONEDEFNV(sopr400i,sopranos,"Sopranos, The (4.00 Italy)",2005,"Stern",de_mSES3,GAME_IMPERFECT_SOUND)
+
 SE128_ROMSTART(sopr300, "sopcpua.300", CRC(cca0e551) SHA1(ef109b871605879b55abb966d6736d7deeca404f))
 DE_DMD32ROM8x(      "sopdspa.300", CRC(aa6306ac) SHA1(80737bd2b93bfc64490d07d2cd482350ed3303b3))
 SOP_SND
@@ -1678,6 +2150,21 @@ SE_ROMEND
 #define input_ports_sopr300 input_ports_sopranos
 #define init_sopr300 init_sopranos
 CORE_CLONEDEFNV(sopr300,sopranos, "Sopranos, The (3.00)",2005,"Stern",de_mSES3,GAME_IMPERFECT_SOUND)
+
+/*-------------------------------------------------------------------
+/ The Sopranos (3.00) alternative sound
+/-------------------------------------------------------------------*/
+SE128_ROMSTART(soprano3, "sopcpua.300", CRC(cca0e551) SHA1(ef109b871605879b55abb966d6736d7deeca404f))
+DE_DMD32ROM8x(      "sopdspa.300", CRC(aa6306ac) SHA1(80737bd2b93bfc64490d07d2cd482350ed3303b3))
+DE3SC_SOUNDROM18888("sopsnd3.u7",  CRC(b22ba5aa) SHA1(8f69932e3b115ae7a6bcb9a15a8b5bf6579e94e0),
+                    "sopsnda.u17", CRC(21e0cfd2) SHA1(d2ff1242f1f4a206e0b2884c079ef2be5df143ac),
+                    "sopsnd3.u21", CRC(257ab09d) SHA1(1d18e279139b1658ce02160d9a37b4bf043393f0),
+                    "sopsnd3.u36", CRC(db33b45c) SHA1(d3285008a3c770371389be470c1ec5ca49c1e568),
+                    "sopsnd3.u37", CRC(06a2a6e1) SHA1(fdbe622223724ac2b4c5183c43d3e635654864bf))
+SE_ROMEND
+#define input_ports_soprano3 input_ports_sopranos
+#define init_soprano3 init_sopranos
+CORE_CLONEDEFNV(soprano3,sopranos, "Sopranos, The (3.00, alternative sound)",2005,"Stern",de_mSES3,0)
 
 SE128_ROMSTART(sopr300l, "sopcpul.300", CRC(2efd7a45) SHA1(d179605c385c3e3b269bb81295f79a52e0f3f627))
 DE_DMD32ROM8x(      "sopdspl.300", CRC(d6f7a723) SHA1(462c8c82ffb6e386adfc411d3e70c4b25553dc7a))
@@ -1821,6 +2308,22 @@ SE_ROMEND
 #define init_nas400l init_nascar
 CORE_CLONEDEFNV(nas400l,nascar,"Nascar (4.00 Spain)",2005,"Stern",de_mSES3,GAME_IMPERFECT_SOUND)
 
+SE128_ROMSTART(nas352, "nascpua.352", CRC(65b8132e) SHA1(b42dca3e68d3eff158bae830f6c8cca00e0ed3e2))
+DE_DMD32ROM8x(      "nasdspa.303", CRC(86e20410) SHA1(c499682713facc6b2923fdd0eff47b98f6a36d14))
+NASCAR_SND
+SE_ROMEND
+#define input_ports_nas352 input_ports_se
+#define init_nas352 init_nascar
+CORE_CLONEDEFNV(nas352,nascar,"Nascar (3.52)",2005,"Stern",de_mSES3,GAME_IMPERFECT_SOUND)
+
+SE128_ROMSTART(nas352l, "nascpul.352", CRC(c78549d8) SHA1(9796c0d413fd2ea7f616ad238b67311c8c29286d))
+DE_DMD32ROM8x(      "nasdspl.303", CRC(868277f0) SHA1(9c058054e6dc3b838bfc3a91d37438afcd59aa4b))
+NASCAR_SND_SP
+SE_ROMEND
+#define input_ports_nas352l input_ports_se
+#define init_nas352l init_nascar
+CORE_CLONEDEFNV(nas352l,nascar,"Nascar (3.52 Spain)",2005,"Stern",de_mSES3,GAME_IMPERFECT_SOUND)
+
 SE128_ROMSTART(nas350, "nascpua.350", CRC(e5b4ed49) SHA1(0d38c0e08862a0a5a200225634c5bf0d0afe5afe))
 DE_DMD32ROM8x(      "nasdspa.303", CRC(86e20410) SHA1(c499682713facc6b2923fdd0eff47b98f6a36d14))
 NASCAR_SND
@@ -1828,6 +2331,14 @@ SE_ROMEND
 #define input_ports_nas350 input_ports_se
 #define init_nas350 init_nascar
 CORE_CLONEDEFNV(nas350,nascar,"Nascar (3.50)",2005,"Stern",de_mSES3,GAME_IMPERFECT_SOUND)
+
+SE128_ROMSTART(nas350l, "nascpul.350", CRC(ab749309) SHA1(95d35126bda75c68037010f001c28a860b6a6e0c))
+DE_DMD32ROM8x(      "nasdspl.303", CRC(868277f0) SHA1(9c058054e6dc3b838bfc3a91d37438afcd59aa4b))
+NASCAR_SND_SP
+SE_ROMEND
+#define input_ports_nas350l input_ports_se
+#define init_nas350l init_nascar
+CORE_CLONEDEFNV(nas350l,nascar,"Nascar (3.50 Spain)",2005,"Stern",de_mSES3,GAME_IMPERFECT_SOUND)
 
 SE128_ROMSTART(nas340, "nascpua.340", CRC(120dc65a) SHA1(151c1604dacb1c1cf74449291d81629a05fb1b09))
 DE_DMD32ROM8x(      "nasdspa.303", CRC(86e20410) SHA1(c499682713facc6b2923fdd0eff47b98f6a36d14))
@@ -1860,6 +2371,17 @@ SE_ROMEND
 #define input_ports_nas301l input_ports_se
 #define init_nas301l init_nascar
 CORE_CLONEDEFNV(nas301l,nascar,"Nascar (3.01 Spain)",2005,"Stern",de_mSES3,GAME_IMPERFECT_SOUND)
+
+/*-------------------------------------------------------------------
+/ Dale Jr. (NASCAR 5.00)
+/-------------------------------------------------------------------*/
+INITGAME(dalejr,GEN_WS,se_dmd128x32,SE_LED)
+SE128_ROMSTART(dalejr, "dalecpu.500", CRC(b723b7db) SHA1(ee5f96599f8ccb0fda0695e5e8af438c3f559df3))
+DE_DMD32ROM8x(      "daledisp.500", CRC(5dad91cd) SHA1(ef9ce5573f580abc720a184625c96672b5337191))
+NASCAR_SND
+SE_ROMEND
+#define input_ports_dalejr input_ports_se
+CORE_GAMEDEFNV(dalejr,"Dale Jr. (5.00)",2006,"Stern",de_mSES3,0)
 
 /*-------------------------------------------------------------------
 / Grand Prix
@@ -1978,6 +2500,86 @@ SE_ROMEND
 #define input_ports_gpr400i input_ports_se
 #define init_gpr400i init_gprix
 CORE_CLONEDEFNV(gpr400i,gprix,"Grand Prix (4.00 Italy)",2005,"Stern",de_mSES3,GAME_IMPERFECT_SOUND)
+
+SE128_ROMSTART(gpr352, "gpcpua.352", CRC(da46b437) SHA1(07cf288d47e1447c015e5bb1fd85df654bde71ef))
+DE_DMD32ROM8x(      "gpdspa.303", CRC(814f6a50) SHA1(727eac96c4beaafc3ddd9ccd9ef098bd557cbc74))
+GP_SND
+SE_ROMEND
+#define input_ports_gpr352 input_ports_se
+#define init_gpr352 init_gprix
+CORE_CLONEDEFNV(gpr352,gprix,"Grand Prix (3.52)",2005,"Stern",de_mSES3,GAME_IMPERFECT_SOUND)
+
+SE128_ROMSTART(gpr352g, "gpcpug.352", CRC(b6c15f62) SHA1(b8757e7ef7064d200c7965902b624c8ef947f23d))
+DE_DMD32ROM8x(      "gpdspg.303", CRC(0be9eb1d) SHA1(78c402efcc818e4960ef5ca17e7fa43a028b5c9b))
+GP_SND_GR
+SE_ROMEND
+#define input_ports_gpr352g input_ports_se
+#define init_gpr352g init_gprix
+CORE_CLONEDEFNV(gpr352g,gprix,"Grand Prix (3.52 Germany)",2005,"Stern",de_mSES3,GAME_IMPERFECT_SOUND)
+
+SE128_ROMSTART(gpr352l, "gpcpul.352", CRC(cd296661) SHA1(e706525b07e1e1278ab65a896616e63be52e8e73))
+DE_DMD32ROM8x(      "gpdspl.303", CRC(82f30b13) SHA1(2f15228dbd6f3957f657772725f3280adf778d72))
+GP_SND_SP
+SE_ROMEND
+#define input_ports_gpr352l input_ports_se
+#define init_gpr352l init_gprix
+CORE_CLONEDEFNV(gpr352l,gprix,"Grand Prix (3.52 Spain)",2005,"Stern",de_mSES3,GAME_IMPERFECT_SOUND)
+
+SE128_ROMSTART(gpr352f, "gpcpuf.352", CRC(78140cd3) SHA1(9c7257dede5c3bf78d9a9bbdf89bd01f12180c4f))
+DE_DMD32ROM8x(      "gpdspf.303", CRC(f48f3a4b) SHA1(74c7d1670d6f1ed68d5aed5a755f27ffdb566cbd))
+GP_SND_FR
+SE_ROMEND
+#define input_ports_gpr352f input_ports_se
+#define init_gpr352f init_gprix
+CORE_CLONEDEFNV(gpr352f,gprix,"Grand Prix (3.52 France)",2005,"Stern",de_mSES3,GAME_IMPERFECT_SOUND)
+
+SE128_ROMSTART(gpr352i, "gpcpui.352", CRC(941bd2a9) SHA1(11402004c5b57de5ec28ea2f4128b1852c205dac))
+DE_DMD32ROM8x(      "gpdspi.303", CRC(36418722) SHA1(66f04e3069c51004cb82961a7d82ac0a5f6a84dd))
+GP_SND_IT
+SE_ROMEND
+#define input_ports_gpr352i input_ports_se
+#define init_gpr352i init_gprix
+CORE_CLONEDEFNV(gpr352i,gprix,"Grand Prix (3.52 Italy)",2005,"Stern",de_mSES3,GAME_IMPERFECT_SOUND)
+
+SE128_ROMSTART(gpr350, "gpcpua.350", CRC(bd47be96) SHA1(31b7adc5cec10d18dd551fdba94fbdb8c6eac01b))
+DE_DMD32ROM8x(      "gpdspa.303", CRC(814f6a50) SHA1(727eac96c4beaafc3ddd9ccd9ef098bd557cbc74))
+GP_SND
+SE_ROMEND
+#define input_ports_gpr350 input_ports_se
+#define init_gpr350 init_gprix
+CORE_CLONEDEFNV(gpr350,gprix,"Grand Prix (3.50)",2005,"Stern",de_mSES3,GAME_IMPERFECT_SOUND)
+
+SE128_ROMSTART(gpr350g, "gpcpug.350", CRC(8e77c953) SHA1(07d23ce2f0b0a2dc6284b71d1a4a8d1bb5dab6d0))
+DE_DMD32ROM8x(      "gpdspg.303", CRC(0be9eb1d) SHA1(78c402efcc818e4960ef5ca17e7fa43a028b5c9b))
+GP_SND_GR
+SE_ROMEND
+#define input_ports_gpr350g input_ports_se
+#define init_gpr350g init_gprix
+CORE_CLONEDEFNV(gpr350g,gprix,"Grand Prix (3.50 Germany)",2005,"Stern",de_mSES3,GAME_IMPERFECT_SOUND)
+
+SE128_ROMSTART(gpr350l, "gpcpul.350", CRC(714f0641) SHA1(c09aa248fe04fc3c569c6786c0db8d396cbd2403))
+DE_DMD32ROM8x(      "gpdspl.303", CRC(82f30b13) SHA1(2f15228dbd6f3957f657772725f3280adf778d72))
+GP_SND_SP
+SE_ROMEND
+#define input_ports_gpr350l input_ports_se
+#define init_gpr350l init_gprix
+CORE_CLONEDEFNV(gpr350l,gprix,"Grand Prix (3.50 Spain)",2005,"Stern",de_mSES3,GAME_IMPERFECT_SOUND)
+
+SE128_ROMSTART(gpr350f, "gpcpuf.350", CRC(ad4224e9) SHA1(781a76ef14e7abb2b57ae49cd8712ddace8a4fca))
+DE_DMD32ROM8x(      "gpdspf.303", CRC(f48f3a4b) SHA1(74c7d1670d6f1ed68d5aed5a755f27ffdb566cbd))
+GP_SND_FR
+SE_ROMEND
+#define input_ports_gpr350f input_ports_se
+#define init_gpr350f init_gprix
+CORE_CLONEDEFNV(gpr350f,gprix,"Grand Prix (3.50 France)",2005,"Stern",de_mSES3,GAME_IMPERFECT_SOUND)
+
+SE128_ROMSTART(gpr350i, "gpcpui.350", CRC(64bc5f6b) SHA1(fb079323d3548f1915de93d724d3fb76b2e02f27))
+DE_DMD32ROM8x(      "gpdspi.303", CRC(36418722) SHA1(66f04e3069c51004cb82961a7d82ac0a5f6a84dd))
+GP_SND_IT
+SE_ROMEND
+#define input_ports_gpr350i input_ports_se
+#define init_gpr350i init_gprix
+CORE_CLONEDEFNV(gpr350i,gprix,"Grand Prix (3.50 Italy)",2005,"Stern",de_mSES3,GAME_IMPERFECT_SOUND)
 
 SE128_ROMSTART(gpr340, "gpcpua.340", CRC(798f2ab3) SHA1(046cbbd0115511b2cbd7f132b0755d03edce1e7b))
 DE_DMD32ROM8x(      "gpdspa.303", CRC(814f6a50) SHA1(727eac96c4beaafc3ddd9ccd9ef098bd557cbc74))

@@ -82,11 +82,10 @@ CORE_GAMEDEFNV(hod,"House of Diamonds",1978,"Zaccaria",mZAC1311,0)
 /*--------------------------------
 / Future World (10/78)
 /-------------------------------*/
-// Game ROMs #2 and #3 have to be swapped!
 INITGAME1(futurwld,GEN_ZAC1,dispZAC1,SNDBRD_ZAC1311,125)
 ZAC_ROMSTART44444(futurwld,	"futwld_1.lgc",CRC(d83b8793) SHA1(3bb04d8395191ecf324b6da0bcddcf7bd8d41867),
-							"futwld_3.lgc",CRC(bdcb7e1d) SHA1(e6c0c7e8188df87937f0b22dbb0639872e03e948),
-							"futwld_2.lgc",CRC(48e3d293) SHA1(0029f30c4a94067e7782e22499b11db86f051934),
+							"futwld_2.lgc",CRC(bdcb7e1d) SHA1(e6c0c7e8188df87937f0b22dbb0639872e03e948),
+							"futwld_3.lgc",CRC(48e3d293) SHA1(0029f30c4a94067e7782e22499b11db86f051934),
 							"futwld_4.lgc",CRC(b1de2120) SHA1(970e1c4eadb7ace1398684accac289a434d13d84),
 							"futwld_5.lgc",CRC(6b7965f2) SHA1(31314bc63f01717004c5c2448b5db7d292145b60))
 ZAC_ROMEND
@@ -206,6 +205,17 @@ ZAC_SOUNDROM_cefg1(			"sound1.c",  CRC(3aa95018) SHA1(5347c3aefb642fc5cabd9d5e61
 							"sound4.g",  CRC(720593fb) SHA1(93aa9ae1be299548e17b4fe97a7fb4ddab76de40))
 ZAC_ROMEND
 CORE_GAMEDEFNV(socrking,"Soccer Kings",1982,"Zaccaria",ZAC2A,0)
+
+INITGAME(socrkina,GEN_ZAC2,dispZAC3,SNDBRD_ZAC1370,366)
+ZAC_ROMSTART000(socrkina,	"soccer.ic1",CRC(3fbd7c32) SHA1(2f56f67d1ad987638284000cca1e20ff17fcd4f9),
+							"soccer.ic2",CRC(0cc0df1f) SHA1(2fd05af0ec63835a8f69fdc50e2faceb829b4df2),
+							"soccer.1c3",CRC(5da6ea20) SHA1(c0e740e20a968ee58e0cd12a0089bb047f5e2cbb))
+ZAC_SOUNDROM_cefg1(			"sound1.c",  CRC(3aa95018) SHA1(5347c3aefb642fc5cabd9d5e61fe6515a2dcb2aa),
+							"sound2.e",  CRC(f9b57fd6) SHA1(50e42ed349680211eedf55ae639dbae899f3c6da),
+							"sound3.f",  CRC(551566e6) SHA1(350432dbc0d6f55404cae970524a0dfda15d8aa0),
+							"sound4.g",  CRC(720593fb) SHA1(93aa9ae1be299548e17b4fe97a7fb4ddab76de40))
+ZAC_ROMEND
+CORE_CLONEDEFNV(socrkina,socrking,"Soccer Kings (alternate set)",1982,"Zaccaria",ZAC2A,0)
 
 INITGAME(socrkngi,GEN_ZAC2,dispZAC3,SNDBRD_ZAC1370,366)
 ZAC_ROMSTART000(socrkngi,	"soccer.ic1",CRC(3fbd7c32) SHA1(2f56f67d1ad987638284000cca1e20ff17fcd4f9),
@@ -393,7 +403,7 @@ CORE_CLONEDEFNV(pinc7ifp,pinchamp,"Pinball Champ (7 digits, Italian speech Free 
 /*--------------------------------
 / Time Machine (04/83)
 /-------------------------------*/
-INITGAME(tmachzac,GEN_ZAC2,dispZAC2,SNDBRD_ZAC13136,366)
+INITGAME(tmachzac,GEN_ZAC2,dispZAC2,SNDBRD_ZAC1370,366)
 ZAC_ROMSTART1820(tmachzac,	"timemach.ic1",CRC(d88f424b) SHA1(a0c51f894d604504253f66e49298a9d836e25308),
 							"timemach.ic2",CRC(3c313487) SHA1(17c6c4a0c0c6dd90cf7fd9298b945305f734747d))
 ZAC_SOUNDROM_de1g(			"sound1.d",    CRC(efc1d724) SHA1(f553767c053e4854fe7839f8c8f4a7f5aefe2692),
@@ -402,7 +412,7 @@ ZAC_SOUNDROM_de1g(			"sound1.d",    CRC(efc1d724) SHA1(f553767c053e4854fe7839f8c
 ZAC_ROMEND
 CORE_GAMEDEFNV(tmachzac,"Time Machine (Zaccaria)",1983,"Zaccaria",mZAC2X,0)
 
-INITGAME(tmacgzac,GEN_ZAC2,dispZAC2,SNDBRD_ZAC13136,366)
+INITGAME(tmacgzac,GEN_ZAC2,dispZAC2,SNDBRD_ZAC1370,366)
 ZAC_ROMSTART1820(tmacgzac,	"timemach.ic1",CRC(d88f424b) SHA1(a0c51f894d604504253f66e49298a9d836e25308),
 							"timemach.ic2",CRC(3c313487) SHA1(17c6c4a0c0c6dd90cf7fd9298b945305f734747d))
 ZAC_SOUNDROM_de1g(			"tmach_de.1d", CRC(8e8c27a4) SHA1(2e418e509bc241c193564e926583b09582944233),
@@ -411,7 +421,7 @@ ZAC_SOUNDROM_de1g(			"tmach_de.1d", CRC(8e8c27a4) SHA1(2e418e509bc241c193564e926
 ZAC_ROMEND
 CORE_CLONEDEFNV(tmacgzac,tmachzac,"Time Machine (Zaccaria, German speech)",1983,"Zaccaria",mZAC2X,0)
 
-INITGAME(tmacfzac,GEN_ZAC2,dispZAC2,SNDBRD_ZAC13136,366)
+INITGAME(tmacfzac,GEN_ZAC2,dispZAC2,SNDBRD_ZAC1370,366)
 ZAC_ROMSTART1820(tmacfzac,	"timemach.ic1",CRC(d88f424b) SHA1(a0c51f894d604504253f66e49298a9d836e25308),
 							"timemach.ic2",CRC(3c313487) SHA1(17c6c4a0c0c6dd90cf7fd9298b945305f734747d))
 ZAC_SOUNDROM_de1g(			"tmach_fr.1d", CRC(831203a4) SHA1(fc60086c2b9b83a47f30b028e7512090658c5700),
@@ -420,7 +430,7 @@ ZAC_SOUNDROM_de1g(			"tmach_fr.1d", CRC(831203a4) SHA1(fc60086c2b9b83a47f30b028e
 ZAC_ROMEND
 CORE_CLONEDEFNV(tmacfzac,tmachzac,"Time Machine (Zaccaria, French speech)",1983,"Zaccaria",mZAC2X,0)
 
-INITGAME(tmachfp,GEN_ZAC2,dispZAC2,SNDBRD_ZAC13136,366)
+INITGAME(tmachfp,GEN_ZAC2,dispZAC2,SNDBRD_ZAC1370,366)
 ZAC_ROMSTART1820(tmachfp,	"timemfp.ic1",CRC(8df8c995) SHA1(a29ab06ac6b8cf7d7c5bd650f16926e87e2c8fc1),
 							"timemfp.ic2",CRC(4f291dc5) SHA1(f6ec713e5a737d34ca42142f3f6cad0edfd7b908))
 ZAC_SOUNDROM_de1g(			"sound1.d",    CRC(efc1d724) SHA1(f553767c053e4854fe7839f8c8f4a7f5aefe2692),
@@ -429,7 +439,7 @@ ZAC_SOUNDROM_de1g(			"sound1.d",    CRC(efc1d724) SHA1(f553767c053e4854fe7839f8c
 ZAC_ROMEND
 CORE_CLONEDEFNV(tmachfp,tmachzac,"Time Machine (Zaccaria Free Play)",1983,"Zaccaria",mZAC2X,0)
 
-INITGAME(tmacgfp,GEN_ZAC2,dispZAC2,SNDBRD_ZAC13136,366)
+INITGAME(tmacgfp,GEN_ZAC2,dispZAC2,SNDBRD_ZAC1370,366)
 ZAC_ROMSTART1820(tmacgfp,	"timemfp.ic1",CRC(8df8c995) SHA1(a29ab06ac6b8cf7d7c5bd650f16926e87e2c8fc1),
 							"timemfp.ic2",CRC(4f291dc5) SHA1(f6ec713e5a737d34ca42142f3f6cad0edfd7b908))
 ZAC_SOUNDROM_de1g(			"tmach_de.1d", CRC(8e8c27a4) SHA1(2e418e509bc241c193564e926583b09582944233),
@@ -438,7 +448,7 @@ ZAC_SOUNDROM_de1g(			"tmach_de.1d", CRC(8e8c27a4) SHA1(2e418e509bc241c193564e926
 ZAC_ROMEND
 CORE_CLONEDEFNV(tmacgfp,tmachzac,"Time Machine (Zaccaria, German speech Free Play)",1983,"Zaccaria",mZAC2X,0)
 
-INITGAME(tmacffp,GEN_ZAC2,dispZAC2,SNDBRD_ZAC13136,366)
+INITGAME(tmacffp,GEN_ZAC2,dispZAC2,SNDBRD_ZAC1370,366)
 ZAC_ROMSTART1820(tmacffp,	"timemfp.ic1",CRC(8df8c995) SHA1(a29ab06ac6b8cf7d7c5bd650f16926e87e2c8fc1),
 							"timemfp.ic2",CRC(4f291dc5) SHA1(f6ec713e5a737d34ca42142f3f6cad0edfd7b908))
 ZAC_SOUNDROM_de1g(			"tmach_fr.1d", CRC(831203a4) SHA1(fc60086c2b9b83a47f30b028e7512090658c5700),

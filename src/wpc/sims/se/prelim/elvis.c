@@ -9,7 +9,7 @@
  ******************************************************************************/
 
 /*------------------------------------------------------------------------------
-  Keys for The Monopoly Simulator:
+  Keys for The Elvis Simulator:
   ------------------------------------
     +I  L/R Inlane
     +O  L/R Outlane
@@ -468,7 +468,7 @@ static sim_tSimData elvisSimData = {
 / Game Data Information
 /----------------------*/
 static struct core_dispLayout dispElvis[] = {
-  { 0, 0,32,128,CORE_DMD, (genf *)dedmd32_update, NULL},
+  { 0, 0,32,128,CORE_DMD, (genf *)dedmd32_update, NULL}, {0}
 };
 static core_tGameData elvisGameData = {
   GEN_WS, dispElvis,

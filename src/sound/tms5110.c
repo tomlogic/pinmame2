@@ -100,6 +100,8 @@ void tms5110_reset(void)
     /* initialize the sample generators */
     interp_count = sample_count = pitch_count = 0;
 		RNG = 0x1fff;
+    PDC = 0;
+    
     memset(u, 0, sizeof(u));
     memset(x, 0, sizeof(x));
 }
@@ -455,7 +457,7 @@ void tms5110_process(INT16 *buffer, unsigned int size)
        * disabled, forcing all samples beyond 50d to be == 50d
        * (address 50d holds zeroes)
        */
-  
+
   	  /*if (tms->coeff->subtype & (SUBTYPE_TMS5100 | SUBTYPE_M58817))*/
 
    		if (pitch_count > 50)

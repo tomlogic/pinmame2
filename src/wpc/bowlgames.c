@@ -17,14 +17,15 @@
 #include "desound.h"
 #include "se.h"
 #include "vpintf.h"
+#include "machine/6821pia.h"
 
 #define INITGAME(name, gen, disp) \
 static core_tGameData name##GameData = { gen, disp }; \
 static void init_##name(void) { core_gameData = &name##GameData; }
 
-#define INITGAME_S10(name, gen, disp, mux, flip, db, inv) \
+#define INITGAME_S10(name, gen, disp, flags, flip, db, inv) \
 static core_tGameData name##GameData = { \
-  gen, disp, {flip,0,0,0,0,db}, NULL, {{0}, {0,0,0,0,inv}}, {mux} }; \
+  gen, disp, {flip,0,0,0,0,db,flags}, NULL, {{0}, {0,0,0,0,inv}}}; \
 static void init_##name(void) { core_gameData = &name##GameData; }
 
 S4_INPUT_PORTS_START(bowl, 1) S4_INPUT_PORTS_END
@@ -181,17 +182,41 @@ CORE_GAMEDEF(tstrk,l1,"Triple Strike (Shuffle) (L-1)",1983,"Williams",s4_mS4,GAM
 /*------------------------------------------------
 / Midnight Marauders (BY35-???: 05/84) - Gun game
 /-------------------------------------------------*/
-static const core_tLCDLayout dispMM[] = {{ 0,0,0,16,CORE_SEG7 }, {0}};
-static core_tGameData mdntmrdrGameData = {GEN_BY35,dispMM,{FLIP_SW(FLIP_L),0,8,0,SNDBRD_BY61,0,BY35GD_PHASE}};
+static SWITCH_UPDATE(marauders) {
+  if (inports) {
+    UINT8 col1 = inports[BY35_COMINPORT] & 0x60;
+    UINT8 col2 = (inports[BY35_COMINPORT] >> 8) & 0x87;
+    if (col1 & 0x20) col1 = (col1 & 0xdf) | 0x01; // move start sw
+    col1 |= (col1 & 0x40) >> 1; // move tilt sw
+    col2 |= (col2 & 0x80) >> 4; // move slam sw
+    CORE_SETKEYSW(inports[BY35_COMINPORT], 0x07, 0);
+    CORE_SETKEYSW(col1, 0x21, 1);
+    CORE_SETKEYSW(col2, 0x0f, 2);
+  }
+  /*-- Diagnostic buttons on CPU board --*/
+  cpu_set_nmi_line(0, core_getSw(BY35_SWCPUDIAG) ? ASSERT_LINE : CLEAR_LINE);
+  sndbrd_0_diag(core_getSw(BY35_SWSOUNDDIAG));
+  /*-- coin door switches --*/
+  pia_set_input_ca1(0, !core_getSw(BY35_SWSELFTEST));
+}
+static MACHINE_DRIVER_START(marauders)
+  MDRV_IMPORT_FROM(by35_61S)
+  MDRV_SWITCH_UPDATE(marauders)
+MACHINE_DRIVER_END
+static const core_tLCDLayout dispMM[] = {
+  {0, 0, 7,1,CORE_SEG7}, {0, 2, 6,1,CORE_SEG7}, {0, 4, 5,1,CORE_SEG7},
+  {0, 6, 4,1,CORE_SEG7}, {0, 8, 3,1,CORE_SEG7}, {0,10, 2,1,CORE_SEG7}, {0}
+};
+static core_tGameData mdntmrdrGameData = {GEN_BY35,dispMM,{FLIP_SW(FLIP_L),0,8,0,SNDBRD_BY61,0,BY35GD_MARAUDER}};
 static void init_mdntmrdr(void) { core_gameData = &mdntmrdrGameData; }
-BY35_ROMSTARTx00(mdntmrdr,"u2.bin",NO_DUMP,
-                          "u6.bin",CRC(ff55fb57) SHA1(4a44fc8732c8cbce38c9605c7958b02a6bc95da1))
+BY35_ROMSTARTx00(mdntmrdr, "mdru2.532", CRC(f72668bc) SHA1(25b984e1828905190c73c359ee6c9858ed1b2224),
+                           "mdru6.732", CRC(ff55fb57) SHA1(4a44fc8732c8cbce38c9605c7958b02a6bc95da1))
 SOUNDREGION(0x10000, REGION_CPU2)
-  ROM_LOAD("u3.bin", 0xd000, 0x1000, NO_DUMP)
-  ROM_LOAD("u5.bin", 0xf000, 0x1000, NO_DUMP)
+  ROM_LOAD("u3.bin", 0xd000, 0x1000, CRC(3ba474e4) SHA1(4ee5c3ad2c9dca49e9394521506e97a95e3d9a17))
+  ROM_LOAD("u5.bin", 0xf000, 0x1000, CRC(3ab40e35) SHA1(63b2ee074e5993a2616e67d3383bc3d3ac51b400))
 BY35_ROMEND
 BY35_INPUT_PORTS_START(mdntmrdr,1) BY35_INPUT_PORTS_END
-CORE_GAMEDEFNV(mdntmrdr,"Midnight Marauders (Gun game)",1984,"Bally Midway",by35_mBY35_61S,GAME_NOT_WORKING)
+CORE_GAMEDEFNV(mdntmrdr,"Midnight Marauders (Gun game)",1984,"Bally Midway",marauders,0)
 
 /*----------------------------
 / Black Beauty
@@ -228,6 +253,19 @@ S9_ROMSTART12(pfevr,p3,"cpu_u19.732", CRC(03796c6d) SHA1(38c95fcce9d0f357a74f041
 S9S_SOUNDROM4("cpu_u49.128", CRC(b0161712) SHA1(5850f1f1f11e3ac9b9629cff2b26c4ad32436b55))
 S9_ROMEND
 CORE_CLONEDEF(pfevr, p3, l2, "Pennant Fever Baseball (P-3)", 1984, "Williams", s9_mS9PS, 0)
+
+/*--------------------
+/ Still Crazy (#534)
+/--------------------*/
+static const core_tLCDLayout dispCrzy[] = {
+  {0, 0,21,7,CORE_SEG87}, {0}
+};
+INITGAME_S10(scrzy, GEN_S9, dispCrzy, S9_BREAKPIA, FLIP_SW(FLIP_L), S11_BCDDIAG|S11_BCDDISP, 0)
+S9_ROMSTARTx2(scrzy,l1,"scrzy_20.bin", CRC(b0df42e6) SHA1(bb10268d7b820d1de0c20e1b79aba558badd072b))
+S9S_SOUNDROM4("scrzy_49.bin", CRC(bcc8ccc4) SHA1(2312f9cc4f5a2dadfbfa61d13c31bb5838adf152))
+S9_ROMEND
+S11_INPUT_PORTS_START(scrzy, 1) S11_INPUT_PORTS_END
+CORE_GAMEDEF(scrzy, l1, "Still Crazy (L-1)", 1984, "Williams", s9_mS9S, 0)
 
 /*--------------------
 / Strike Zone (#916)
@@ -475,8 +513,8 @@ CORE_CLONEDEF(afv,d4,l4,"Addams Family Values (Coin Dropper, D-4) LED Ghost Fix"
 / Strikes n' Spares (#N111)
 /-------------------------------------------------------------------*/
 static struct core_dispLayout GTS3_dispDMD[] = {
-  {0,0,32,128,CORE_DMD,(genf *)gts3_dmd128x32},
-  {34,0,32,128,CORE_DMD,(genf *)gts3_dmd128x32a},
+  {0,0,32,128,CORE_DMD|CORE_DMDNOAA,(genf *)gts3_dmd128x32},
+  {34,0,32,128,CORE_DMD|CORE_DMDNOAA,(genf *)gts3_dmd128x32a},
   {0}
 };
 static core_tGameData snsparesGameData = {GEN_GTS3,GTS3_dispDMD,{FLIP_SWNO(21,22),4,4,0,SNDBRD_NONE,0}};
@@ -497,6 +535,15 @@ NORMALREGION(0x100000, REGION_USER3) \
   GTS3S_ROMLOAD4(0x00000, "arom1.bin", CRC(e248574a) SHA1(d2bdc2b9a330bb81556d25d464f617e0934995eb)) \
 GTS3_ROMEND
 CORE_CLONEDEFNV(snspare1,snspares,"Strikes n' Spares (rev.1)",1995,"Gottlieb",mGTS3DMDS2, 0)
+
+#define init_snspare2 init_snspares
+#define input_ports_snspare2 input_ports_snspares
+GTS3ROMSTART(snspare2,  "gprom2.bin",CRC(79906dfc) SHA1(1efb68dd391f79e6f8ad5a588145d6ad7b36743c))
+GTS3_DMD256_ROMSTART2(  "dsprom.bin",CRC(5c901899) SHA1(d106561b2e382afdb16e938072c9c8f1d1ccdae6))
+NORMALREGION(0x100000, REGION_USER3) \
+  GTS3S_ROMLOAD4(0x00000, "arom1.bin", CRC(e248574a) SHA1(d2bdc2b9a330bb81556d25d464f617e0934995eb)) \
+GTS3_ROMEND
+CORE_CLONEDEFNV(snspare2,snspares,"Strikes n' Spares (rev.2)",1995,"Gottlieb",mGTS3DMDS2, 0)
 
 /*-----------------------------
 / League Champ (Shuffle Alley)

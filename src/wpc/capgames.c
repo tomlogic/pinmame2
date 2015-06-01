@@ -45,13 +45,19 @@ const core_tLCDLayout cc_dispDMD256x64[] = {
 / Goofy Hoops (Romstar game) (??/95)
 /-------------------------------------------------------------------*/
 //Might have different hardware mappings as a quick peek of the code looked different than the pins
-INITGAME(ghv101, 0, cc_dispDMD128x32, 3, 0, 0)
-CC_ROMSTART_4(ghv101,  "u06_v11.bin", CRC(3b6ab802),
-                       "u23_v11.bin", CRC(f6cac3aa),
+INITGAME(ghv101, 0, cc_dispDMD128x32, 3, SNDBRD_CAPCOMS, 0)
+CC_ROMSTART_4(ghv101, "u17_v10.bin", CRC(b6a39327),
                        "u13_v10.bin", CRC(1712f21f),
-                       "u17_v10.bin", CRC(b6a39327))
+			"u23_v11.bin", CRC(f6cac3aa),
+			"u06_v11.bin", CRC(3b6ab802))
+CAPCOMS_SOUNDROM5a("u24_v11.bin",  CRC(d46212f4) SHA1(50f1279d995b597c468805b323e0252800b28274),\
+		   "u15_v10.bin", CRC(a77c884c) SHA1(10e7e242876fe197f582f1574ed47c4682b87db5), \
+		   "u19_v10.bin", CRC(550c1c52) SHA1(f97cceb552a6bffe55c85fc01120ad99d3b7f19b), \
+		   "u30_v10.bin", CRC(44a2edb9) SHA1(c14b00e07cc873ef99ec629fbdeda72e9e69ac47), \
+		   "u32_v10.bin", CRC(73ee0ecc) SHA1(48aed6f76c0b506bd39430c7f1ea8735db99b8e3), \
+		   "u34_v10.bin", CRC(cd5ea236) SHA1(dded158bc2f8443d2e69834cde87e81661ca7c53))
 CC_ROMEND
-CORE_GAMEDEFNV(ghv101,"Goofy Hoops",1995,"Romstar",cc,GAME_NOT_WORKING|GAME_NO_SOUND)
+CORE_GAMEDEFNV(ghv101,"Goofy Hoops",1995,"Romstar",cc1,GAME_NOT_WORKING)
 
 /*-------------------------------------------------------------------
 / Pinball Magic (10/95)
@@ -124,7 +130,18 @@ CAPCOMS_SOUNDROM2("u24_v11.bin", CRC(d46212f4) SHA1(50f1279d995b597c468805b323e0
 				  "u28_v11.bin", CRC(b076ad2e) SHA1(1be8e3bda2890545253f6f7e4825d2db1d925255), \
 				  "u29_v11.bin", CRC(b251a27c) SHA1(bc30791cb9b5497c11f1cff06c89a729a07b5d4a))
 CC_ROMEND
-CORE_GAMEDEFNV(bsv103,"Break Shot",1996,"Capcom",cc1,0)
+CORE_GAMEDEFNV(bsv103,"Break Shot (1.3)",1996,"Capcom",cc1,0)
+
+//Version 1.2
+INITGAME(bsv102, 5, cc_dispDMD128x32, 3, SNDBRD_CAPCOMS, 0)
+CC_ROMSTART_2(bsv102,  "u1l_v12.bin", CRC(3e61a32b) SHA1(7708f2c65eea44a872432581ad6ced16e3bbf9f9),
+                       "u1h_v12.bin", CRC(2bfeb237) SHA1(87097d102beff2816cb61d58811dcdf9c04bc18e))
+CAPCOMS_SOUNDROM2("u24_v11.bin", CRC(d46212f4) SHA1(50f1279d995b597c468805b323e0252800b28274), \
+				  "u28_v11.bin", CRC(b076ad2e) SHA1(1be8e3bda2890545253f6f7e4825d2db1d925255), \
+				  "u29_v11.bin", CRC(b251a27c) SHA1(bc30791cb9b5497c11f1cff06c89a729a07b5d4a))
+CC_ROMEND
+CORE_CLONEDEFNV(bsv102, bsv103,"Break Shot (1.2)",1996,"Capcom",cc1,0)
+
 //Redemption Version 1.0I
 INITGAME(bsv100r, 6, cc_dispDMD128x32, 3, SNDBRD_CAPCOMS, 0)
 CC_ROMSTART_2(bsv100r, "u1l_v10i.bin",CRC(304b4da8) SHA1(2643f304adce3543b792bd2d0ec8abe8d9a5478c),
