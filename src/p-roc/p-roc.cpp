@@ -332,7 +332,7 @@ void procClearAuxMemory(void) {
 
 // Initialize the P-ROC hardware.
 int procInitialize(char *yaml_filename) {
-	fprintf(stderr, "\n\n****** Initializing P-ROC ******\n");
+	fprintf(stderr, "\n\n****** Initializing P-ROC with %s\n", yaml_filename);
         setMachineType(yaml_filename);
         setPatterDetection();
         
