@@ -2,6 +2,7 @@
 #define INC_PROC
 
 #include <p-roc/pinproc.h>
+#include "driver.h"		// necessary for UINT8 and UINT16 typedefs
 #include "time.h"
 
 #define PROC_NUM_DMD_FRAMES 4

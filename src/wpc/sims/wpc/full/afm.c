@@ -442,65 +442,7 @@ static HC4094interface hc4094afm = {
 
 #ifdef PROC_SUPPORT
   #include "p-roc/p-roc.h"
-  
-  static UINT64 saucer_queue = 0;
-  static int saucer_bit = 0;
-  int saucer_queue_empty() {
-    return saucer_bit == 0;
-  }
-  void saucer_enqueue(int bit) {
-    if (saucer_bit == 63) {
-      // saucer queue is full and we've fallen behind, drop half the bits
-      saucer_queue >>= 32;
-      saucer_bit -= 32;
-    }
-    if (bit)
-      saucer_queue |= (1UL << saucer_bit);
-    ++saucer_bit;
-  }
-  int saucer_dequeue() {
-    int retval = -1;
-    if (saucer_bit > 0) {
-      retval = saucer_queue & 1;
-      saucer_queue >>= 1;
-      --saucer_bit;
-    }
-    return retval;
-  }
-
-  void saucer_clock(void) {
-    // pulse the clock, relying on YAML's pulseTime of 1 on C37
-    procDriveCoil(36 + 32, 1);
-    procFlush();
-  }
-
-  void saucer_check_queue(int dummy) {
-    static int set_clock = 0;
-    static int saucer_data_proc = 0;
-    int saucer_data;
-
-    if (set_clock) {
-      set_clock = 0;
-      saucer_clock();
-      return;
-    }
-
-    if (saucer_queue_empty())
-      return;
-      
-    saucer_data = saucer_dequeue();
-    if (saucer_data_proc == saucer_data) {
-      saucer_clock();
-    } else {
-      // update output pin on P-ROC first
-      procDriveCoil(37 + 32, saucer_data);
-      procFlush();
-      saucer_data_proc = saucer_data;
-
-      // set clock on next pass
-      set_clock = 1;
-    }
-  }
+  #include "p-roc/proc_shift_reg.h"
 
   /*
     LEDs of saucer controlled by a serial shift register.  Game sets DATA and
@@ -547,7 +489,7 @@ static HC4094interface hc4094afm = {
 
       case 36:  // C37 clock for saucer LEDs
         if (!smoothed && enabled) {
-          saucer_enqueue(saucer_data);
+          proc_shiftRegEnqueue(saucer_data);
         }
         return;
     }
@@ -577,10 +519,8 @@ static void init_afm(void) {
   HC4094_strobe_w(1, 1);
 #ifdef PROC_SUPPORT
   wpc_proc_solenoid_handler = afm_wpc_proc_solenoid_handler;
-  if (coreGlobals.p_rocEn) {
-    // allocate a timer to shift bits out to the saucer's shift register
-    timer_pulse(TIME_IN_MSEC(12.0), 0, &saucer_check_queue);
-  }
+  // clock on C37, data on C38
+  proc_shiftRegInit(36 + 32, 37 + 32);
 #endif
 }
 
