@@ -172,6 +172,10 @@ ifeq ($(TARGET), mess)
 include mess/rules_ms.mak
 endif
 
+ifdef PROC
+include src/p-roc/p-roc.mak
+endif
+
 ifdef DEBUG
 DBGDEFS = -DMAME_DEBUG
 else
@@ -301,17 +305,12 @@ OBJS  += $(subst $(OBJ)/vidhrdw/vector.o, ,$(COREOBJS)) $(DRVLIBS) \
 
 MY_OBJDIRS = $(CORE_OBJDIRS) $(sort $(OBJDIRS))
 
-ifdef PROC
-PROC_OBJS = $(PROC_OBJ)/p-roc.o $(PROC_OBJ)/display.o $(PROC_OBJ)/gameitems.o
-MY_OBJDIRS += $(PROC_OBJ)
-endif
-
 ##############################################################################
 # Begin of the real makefile.
 ##############################################################################
-$(NAME).$(DISPLAY_METHOD): $(OBJS) $(PROC_OBJS)
+$(NAME).$(DISPLAY_METHOD): $(OBJS) $(PROCOBJS)
 	$(CC_COMMENT) @echo 'Linking $@ ...'
-	$(CC_COMPILE) $(LD) $(LDFLAGS) -o $@ $(OBJS) $(PROC_OBJS) $(MY_LIBS) 
+	$(CC_COMPILE) $(LD) $(LDFLAGS) -o $@ $(OBJS) $(PROCOBJS) $(MY_LIBS) 
 
 tools: $(ZLIB) $(OBJDIRS) $(TOOLS)
 
