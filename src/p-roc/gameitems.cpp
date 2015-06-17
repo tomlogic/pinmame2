@@ -32,27 +32,6 @@ int kickbackOnDelay[256];
 int kickbackOffDelay[256];
 int cyclesSinceTransition[256] = { 0 };
 
-
-int current_pattern=0x55aa;
-
-extern bool BOPTwinkle;
-extern bool isHelmetFile;
-extern int twinkleTime;
-int BOPHead=1;
-int BOPMotor=1;
-int BOPMotorNow=1;
-int BOPHeadNow=1;
-int BOPData=0;
-long int lastTwinkleTime;
-extern int motorOnTime;
-extern int motorOffTime;
-extern int BOPClock;
-extern int helmetPatterns[1000];
-extern int twinkleCount;
-long int lastMotorOnTime=0;
-long int lastMotorOffTime=0;
-bool motorDrivePending = TRUE;
-
 extern bool isArduino;
 extern char arduinoPort[];
 int lamp_RGB_Equiv[256] = { 0 };
@@ -314,7 +293,7 @@ void procKickbackCheck(int num)
 }
 
 // It's possible we don't want to handle some drives directly from pinmame, for example those
-// which are handled by switch rules like pop bumpers, or the helmet lamps in BOP
+// which are handled by switch rules like pop bumpers
 void AddIgnoreCoil(int num) {
     if(mame_debug) fprintf(stderr,"\nIgnoring drives to coil %i",num);
     ignoreCoils[num] = TRUE;
@@ -688,158 +667,6 @@ void procConfigureInputMap(void)
 	}
 }
 
-// With Bride of Pinbot (BOP), because the drives for the Head motor and relay are in the same group as the helmet lamps
-// we have to control them via the aux logic too.
-// This routine is called to drive the motor and relay
-void driveBOPHead(void) {
-    PRDriverAuxCommand auxCommands[2];
-    int cmd_index = 0;
-    int output_data = 0;
-
-    // We set the data depending on the value of the required motor and head drives.  The second bit is always kept
-    // high as it's the clock for the lamps and we don't want any data going there.
-    if (BOPMotor == 1 && BOPHead == 1) output_data = 0xe;  //E
-    else if (BOPMotor == 1 && BOPHead == 0) output_data = 0xa; //A
-    else if (BOPMotor == 0 && BOPHead == 1) output_data = 0x6; //6
-    else if (BOPMotor == 0 && BOPHead == 0) output_data = 0x2; //2
-
-    // Make a note of how the motor and face currently are physically, for comparing later
-    BOPMotorNow = BOPMotor;
-    BOPHeadNow = BOPHead;
-    if (mame_debug) {
-        long int msTime = clock() / CLOCKS_PER_MS;
-        fprintf (stderr, "\nUpdate head commands.  Time %ld, Motor %d, Head %d, data is %d", msTime, BOPMotor, BOPHead,output_data);
-    }
-    // First aux instruction is to drive the required data and then delay for 40 microsecs
-    PRDriverAuxPrepareOutput(&(auxCommands[cmd_index++]), output_data & 0xff, 0, 1, 0, 40);
-    // Then jump back to the first position
-    PRDriverAuxPrepareJump(&auxCommands[cmd_index++], 0);
-    // Send the data and jump commands
-    PRDriverAuxSendCommands(proc, auxCommands, cmd_index, 0);
-    // and make sure they get there *now* by flushing anything queued for the P-ROC
-    procFlush();
-    cmd_index = 0;
-    // Now we know that the P-ROC has updated the output, we can stop running commands
-    PRDriverAuxPrepareDisable(&auxCommands[cmd_index++]);
-    PRDriverAuxSendCommands(proc, auxCommands, cmd_index, 0);
-}
-
-
-
-
-// The lamps on the 'helmet' around the BOP face are driven by 2 solenoid outputs.  One works as a clock, which is
-// first raised high.  Then the data line is set to either 0 or 1, then the clock is taken low to latch the data.
-// Rinse and repeat 16 times, once for each bulb.  The timing requirements for this are more precise than the pinmame
-// emulation can reliably provide via the standard drives, so instead we use the aux bus on the P-ROC
-void updateBOPHelmet(void) {
-    PRDriverAuxCommand auxCommands[255];
-    
-    
-    if (mame_debug) {
-        long int msTime = clock() / CLOCKS_PER_MS;
-        fprintf (stderr, "\nUpdate aux commands.  Time %ld, Pattern %d, Motor %d, Head %d", msTime,current_pattern, BOPMotorNow, BOPHead);
-    }
-    int cmd_index = 0;
-    int output_data = 0;
-    int i = 0;
-
-    // Current pattern holds the 16 bits representing each lamp on the helmet.  So 0xFF is all on, 0x00 all off
-    int pattern = current_pattern;
-
-    // In the data we push to the aux port are also the motor/face control drives as they are in the same group.
-    // So we push the current status of the motor and head into the output data value.
-    output_data = output_data | (BOPMotorNow << 3);
-    output_data = output_data | (BOPHeadNow << 2);
-
-    // Then loop through the 16 helmet lamps
-    for (i=0; i<16; i++) {
-        output_data = output_data & 0xfe;              // clear data bit
-        output_data = output_data | ( pattern & 0x1);  // data from the last bit in the pattern
-        output_data = output_data & 0xfd;              // clock low
-        if (mame_debug) fprintf (stderr, "\nSending Aux Command %d", output_data);
-        PRDriverAuxPrepareOutput(&(auxCommands[cmd_index++]), output_data & 0xff, 0, 1, 0, 20);
-        output_data = output_data | 0x2;                // clock high
-        
-        if (mame_debug) fprintf (stderr, "\nSending Aux Command %d", output_data);
-        PRDriverAuxPrepareOutput(&(auxCommands[cmd_index++]), output_data & 0xff, 0, 1, 0, 20);
-
-        pattern = pattern >> 1;  // Shift the pattern one bit right
-    }
-
-    PRDriverAuxPrepareDelay(&auxCommands[cmd_index++], 5000);  // Delay to give the lamps time to light
-    PRDriverAuxPrepareJump(&auxCommands[cmd_index++], 0);      // And jump back to address 0
-
-    // Write all this to address 100 so it's ready to be used
-    PRDriverAuxSendCommands(proc, auxCommands, cmd_index, 100);
-
-    // At idle, the aux port is sitting at address zero looking at a disable command.
-    // To get this to process the lamps, send a jump to address 100
-    cmd_index = 0;
-    PRDriverAuxPrepareJump(&auxCommands[cmd_index++], 100);
-    PRDriverAuxSendCommands(proc, auxCommands, cmd_index, 0);
-    
-    // send it *now*
-    procFlush();
-    // That code only needs to run once, so we can now send a disable command to address 0 instead
-    cmd_index = 0;
-    PRDriverAuxPrepareDisable(&auxCommands[cmd_index++]);
-    PRDriverAuxSendCommands(proc, auxCommands, cmd_index, 0);
-}
-
-// If we are controlling the helmet lamps on BOP via the aux port, then every "twinkleTime" ms we need to 
-// progress to the next lamp pattern (if a file was specified in the YAML) or just invert the current pattern if not
-void BOPHelmetCheck(void) {
-
-            static int twinkle_index = 0;
-            long int msTime = clock();
-            
-            // long enough to process ?
-            if (msTime - lastTwinkleTime > twinkleTime) {
-                // If there is a file of patterns, get the next one
-                if (isHelmetFile) {
-                        twinkle_index++;
-                        if (twinkle_index == twinkleCount) {
-                            twinkle_index = 0;
-                        }
-                        current_pattern = helmetPatterns[twinkle_index];
-                }
-                // otherwise just invert the one we have
-                else
-                    current_pattern = current_pattern ^ 0xffff;
-
-                updateBOPHelmet();
-                lastTwinkleTime = clock();
-            }
-            
-            // also if we have a motor drive currently pending, see if enough time has elapsed since the last
-            // command to actually process it
-            if (motorDrivePending) {
-                if ((BOPMotor == 0 && (msTime - lastMotorOffTime > motorOnTime))
-                    || (BOPMotor == 1 && (msTime - lastMotorOffTime > motorOffTime)) ){
-
-                    driveBOPHead();
-                    motorDrivePending = FALSE;
-                }   
-            }
-}
-
-// If we're running the Bride lamps and face via the aux port
-// then when the game is over we need to clear down the aux code
-// When the game stops, aux code carries on running and if that is
-// currently turning the face then it'll carry on forever unless we do this
-void procDisableAuxBus(void) {
-
-    if (BOPTwinkle) {
-        if (mame_debug) fprintf(stderr,"\nClearing P-ROC aux code prior to quit");
-        BOPMotor = 1;
-        BOPHead = 1;
-        current_pattern = 0;
-        driveBOPHead();
-    }
-}
-
-
-
 void procDriveLamp(int num, int state) {
 	PRDriverState lampState;
         memset(&lampState, 0, sizeof(lampState));
@@ -1071,16 +898,6 @@ void procDriveCoil(int num, int state) {
     if (!ignoreCoils[num]) {
         coilDrivers[num].RequestDrive(state);
     }
-    else if (BOPTwinkle) {
-        if (num == 66) {
-            BOPHead = !state;
-        } else if (num == 67) {
-            BOPMotor = !state;
-            if (BOPMotor == 0) lastMotorOnTime = clock();
-            else lastMotorOffTime = clock();
-            motorDrivePending = TRUE;
-        }
-    }
 }
 
 
@@ -1127,27 +944,9 @@ int isSwitchClosed(int index) {
 	        switchStates[index] == kPREventTypeSwitchClosedDebounced);
 }
 
-void earlyInputSetup(void) {
-	if (proc && !switchEventsBeingProcessed) {
-		if (machineType == kPRMachineWPCAlphanumeric || pmoptions.alpha_on_dmd) {
-                        //Trying BOP FLIPPERS
-			//procDriveLamp(79, 1);
-			procTickleWatchdog();
-		}
-		procGetSwitchEventsLocal();
-		procFlush();
-	}
-
-}
-
 int osd_is_proc_pressed(int code)
 {
     bool retcode;
-        // Hooking the BOP helmet cycle in here as it's a piece of code called quite often, but
-        // not so often as the watchdog tickle
-        if (BOPTwinkle) BOPHelmetCheck();
-	
-        earlyInputSetup();
         
         // If the start button gets pressed, capture when that happened if we have a threshold defined in the YAML
         if (!isSwitchClosed(exitButton)) exitPressed = -1;
@@ -1168,10 +967,6 @@ int osd_is_proc_pressed(int code)
 			        osd_is_proc_pressed(kStartButton)) ||
 
                                 (exitPressed != -1 && ( (clock() - exitPressed) > exitButtonHoldTime * CLOCKS_PER_MS)));
-                    
-                    // if we are quitting, clear the aux bus down now as calls from anywhere else never seem
-                    // to get processed
-                    if (retcode) procDisableAuxBus();
                     
                     return (retcode);
 		default:
