@@ -729,11 +729,6 @@ static PALETTE_INIT(core) {
 /------------------------------------*/
 void video_update_core_dmd(struct mame_bitmap *bitmap, const struct rectangle *cliprect, tDMDDot dotCol, const struct core_dispLayout *layout) {
 
-  #ifdef PROC_SUPPORT
-  // If we don't want the DMD displayed on the screen, skip this code
-  if (!pmoptions.virtual_dmd) return;
-  #endif
-
   UINT32 *dmdColor = &CORE_COLOR(COL_DMDOFF);
   UINT32 *aaColor  = &CORE_COLOR(COL_DMDAA);
   BMTYPE **lines = ((BMTYPE **)bitmap->line) + (layout->top*locals.displaySize);
@@ -995,10 +990,13 @@ VIDEO_UPDATE(core_gen) {
 			procClearDMD();
 		}
 	}
+	// If we don't want the DMD displayed on the screen, skip this code
+  if (pmoptions.virtual_dmd) {
 #endif
   updateDisplay(bitmap, cliprect, core_gameData->lcdLayout, &count);
   memcpy(locals.lastSeg, coreGlobals.segments, sizeof(locals.lastSeg));
 #ifdef PROC_SUPPORT
+  }
 	if (coreGlobals.p_rocEn) {
 		if (pmoptions.alpha_on_dmd && alpha) {
                     	procUpdateDMD();

@@ -79,6 +79,7 @@ struct rc_option pinmame_opts[] = {
 // TODO/PROC: Correct implemenatation?
 	{ "p-roc", NULL, rc_string, &pmoptions.p_roc, "None",  0, 0, NULL, "YAML Machine description file" },
 	{ "alpha_on_dmd", NULL, rc_bool, &pmoptions.alpha_on_dmd, "0",  0, 0, NULL, "Emulate alphanumeric display on DMD" },
+	{ "virtual_dmd",  NULL, rc_bool, &pmoptions.virtual_dmd,  "1",  0, 0, NULL, "Enable DMD emulation" },
 #endif /* PROC_SUPPORT */
         { NULL, NULL, rc_end, NULL, NULL, 0, 0, NULL, NULL }
 };
