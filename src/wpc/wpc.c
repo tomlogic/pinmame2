@@ -504,9 +504,13 @@ static INTERRUPT_GEN(wpc_vblank) {
 #endif
 
   /*------------------------------
-  /  Update switches every vblank
+  /  Update switches every vblank; or on every pass when using P-ROC
   /-------------------------------*/
-  if ((wpclocals.vblankCount % WPC_VBLANKDIV) == 0) /*-- update switches --*/
+  if (
+#ifdef PROC_SUPPORT
+      coreGlobals.p_rocEn || 
+#endif
+      (wpclocals.vblankCount % WPC_VBLANKDIV) == 0) /*-- update switches --*/
     core_updateSw((core_gameData->gen & GENWPC_HASFLIPTRON) ? TRUE : (wpc_data[WPC_GILAMPS] & 0x80));
 }
 
