@@ -496,10 +496,13 @@ static INTERRUPT_GEN(wpc_vblank) {
   }
 
 #ifdef PROC_SUPPORT
-	// Check for any coils that need to be disabled due to inactivity.
 	if (coreGlobals.p_rocEn) {
+		// Check for any coils that need to be disabled due to inactivity.
 		procCheckActiveCoils();
 		procFullTroughDisablesFlippers();
+		
+		// Process switch events from P-ROC.
+		procGetSwitchEvents();
 	}
 #endif
 
@@ -895,9 +898,7 @@ static INTERRUPT_GEN(wpc_irq) {
 
 static SWITCH_UPDATE(wpc) {
 #ifdef PROC_SUPPORT
-	if (coreGlobals.p_rocEn) {
-		procGetSwitchEvents();
-	} else {
+	if (! coreGlobals.p_rocEn) {
 #endif
   if (inports) {
     coreGlobals.swMatrix[CORE_COINDOORSWCOL] = inports[WPC_COMINPORT] & 0xff;
