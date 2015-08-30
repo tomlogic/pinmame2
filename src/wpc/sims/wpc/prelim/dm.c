@@ -425,13 +425,14 @@ static core_tGameData dmGameData = {
         return;
         
       case 28:
-        // If game supports this "GameOver" solenoid, it's safe to disable the
-        // flippers here (something that happens when the game starts up) and
-        // rely on solenoid 30 telling us when to enable them.
+        // "GameOver" solenoid, enabled=attract mode, disabled=game in progress
+        puts(enabled ? "attract mode" : "begin game");
         if (enabled)
           flippers = 0;
         break;
       case 30:
+        // "ball in play" solenoid, "enabled" is state of flippers/bumpers/slings
+        printf("%s of ball\n", enabled ? "start" : "end");
         flippers = enabled;
         break;
       default:
@@ -443,6 +444,10 @@ static core_tGameData dmGameData = {
       PRCoilList coils[6];
       int i;
       
+      // first do default enable/disable of bumpers/slings/flippers...
+      procConfigureSwitchRules(enabled);
+      
+      // ...and then do our custom code for the unique flipper setup on DemoMan
       for (i = 0; i < 6; ++i) {
         coils[i].coilNum = PRDecode(kPRMachineWPC, coil_name[i]);
         coils[i].pulseTime = (i & 1) ? 0 : kFlipperPulseTime;

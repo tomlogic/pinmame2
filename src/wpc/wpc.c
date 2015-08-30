@@ -202,14 +202,14 @@ static void wpc_zc(int data) {
             // rely on solenoid 30 telling us when to enable them.
             // ...on WPC-95 games, SOL28 doesn't seem to fire
             if (enabled) {
-              procConfigureFlipperSwitchRules(0);
+              procConfigureSwitchRules(0);
             } else if (core_gameData->gen & GEN_WPC95) {
-              procConfigureFlipperSwitchRules(1);
+              procConfigureSwitchRules(1);
             }
             break;
           case 30:
             fprintf(stderr, "SOL30: %s flippers\n", enabled ? "enable" : "disable");
-            procConfigureFlipperSwitchRules(enabled);
+            procConfigureSwitchRules(enabled);
             // enable flippers on pre-fliptronic games (with no PRFlippers)
             if (core_gameData->gen & (GEN_WPCALPHA_1 | GEN_WPCALPHA_2 | GEN_WPCDMD)) {
               procDriveLamp(79, enabled);
