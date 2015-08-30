@@ -383,6 +383,7 @@ static core_tGameData dmGameData = {
     static const char *sw_left[]  = { "SF4", "SF8" };
     static int motor_pinmame = 0;
     static int motor_proc = 0;
+    static int game_over = TRUE;
     int flippers = -1;
     
     if (!smoothed) {
@@ -427,13 +428,18 @@ static core_tGameData dmGameData = {
       case 28:
         // "GameOver" solenoid, enabled=attract mode, disabled=game in progress
         puts(enabled ? "attract mode" : "begin game");
+        game_over = enabled;
         if (enabled)
           flippers = 0;
         break;
       case 30:
         // "ball in play" solenoid, "enabled" is state of flippers/bumpers/slings
-        printf("%s of ball\n", enabled ? "start" : "end");
-        flippers = enabled;
+        // Ignore this event if in "game over" mode -- we're in the service
+        // menu and don't want the switch rules in place.
+        if (!game_over) {
+          printf("%s of ball\n", enabled ? "start" : "end");
+          flippers = enabled;
+        }
         break;
       default:
         default_wpc_proc_solenoid_handler(solNum, enabled, smoothed);
@@ -445,7 +451,7 @@ static core_tGameData dmGameData = {
       int i;
       
       // first do default enable/disable of bumpers/slings/flippers...
-      procConfigureSwitchRules(enabled);
+      procConfigureSwitchRules(flippers);
       
       // ...and then do our custom code for the unique flipper setup on DemoMan
       for (i = 0; i < 6; ++i) {
